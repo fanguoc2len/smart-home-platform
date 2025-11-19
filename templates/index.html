@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nhận diện khuôn mặt - Smart Home</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(145deg, #1b2735, #090a0f);
+      color: #fff;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    h1 {
+      margin-top: 20px;
+      color: #00d4ff;
+    }
+    video {
+      width: 90%;
+      max-width: 400px;
+      border-radius: 16px;
+      margin-top: 20px;
+      box-shadow: 0 0 15px #00d4ff;
+    }
+    canvas {
+      display: none;
+    }
+    button {
+      margin-top: 20px;
+      background: #00d4ff;
+      color: #000;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+    #result {
+      margin-top: 16px;
+      font-size: 1.05em;
+      color: #00ff88;
+      min-height: 22px;
+    }
+    .hint {
+      margin-top: 10px;
+      color: #aaa;
+      font-size: 0.9em;
+    }
+
+    /* popup đăng ký */
+    #registerPopup {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8);
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 999;
+    }
+    #registerBox {
+      background: #1b2735;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px #00d4ff;
+      width: 85%;
+      max-width: 350px;
+    }
+    #registerBox input {
+      padding: 10px;
+      width: 90%;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+    }
+    #registerBox button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      background: #00d4ff;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    #registerBox button:hover {
+      background: #00a3cc;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔒 Smart Home - Nhận diện khuôn mặt</h1>
+
+  <video id="video" autoplay playsinline></video>
+  <canvas id="canvas"></canvas>
+
+  <button id="captureBtn" disabled>🟢 Đang quét khuôn mặt...</button>
+
+  <div id="result"></div>
+  <div class="hint">Đưa mặt bạn vào khung để xác thực tự động</div>
+
+  <!-- Popup đăng ký khuôn mặt -->
+  <div id="registerPopup">
+    <div id="registerBox">
+      <h3>❓ Không nhận diện được khuôn mặt</h3>
+      <p>Nhập tên để đăng ký khuôn mặt mới:</p>
+      <input id="regName" type="text" placeholder="Nhập tên của bạn...">
+      <div>
+        <button id="confirmRegister">Đăng ký</button>
+        <button id="cancelRegister" style="background:#555;color:#fff;">Hủy</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const FLASK_UPLOAD_URL = "https://christinia-sorediate-fred.ngrok-free.dev/upload";
+    const FLASK_REGISTER_URL = "https://christinia-sorediate-fred.ngrok-free.dev/register";
+
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const result = document.getElementById('result');
+    const popup = document.getElementById('registerPopup');
+    const regName = document.getElementById('regName');
+    const btnConfirm = document.getElementById('confirmRegister');
+    const btnCancel = document.getElementById('cancelRegister');
+
+    let streamRef = null;
+    let scanning = false;
+    let unknownCount = 0;
+
+    // Bật camera
+    async function startCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+        streamRef = stream;
+        video.srcObject = stream;
+        startStreaming();
+      } catch (err) {
+        alert('Không truy cập được camera: ' + err);
+      }
+    }
+
+    function stopCamera() {
+      if (streamRef) {
+        streamRef.getTracks().forEach(track => track.stop());
+        streamRef = null;
+      }
+      scanning = false;
+    }
+
+    function onRecognized(name) {
+      try { localStorage.setItem('recognizedName', name); } catch (e) {}
+      result.innerText = `✅ Đã nhận diện: ${name}. Đang chuyển...`;
+      stopCamera();
+      setTimeout(() => (window.location.href = 'home.html'), 700);
+    }
+
+    async function captureAndSend() {
+      if (!scanning || !video.videoWidth) return;
+
+      const ctx = canvas.getContext('2d');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0);
+      const imageBase64 = canvas.toDataURL('image/jpeg', 0.5);
+
+      try {
+        const res = await fetch(FLASK_UPLOAD_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: imageBase64 })
+        });
+        const data = await res.json();
+
+        if (data.name && data.name !== "Unknown") {
+          onRecognized(data.name);
+          unknownCount = 0;
+          return;
+        }
+
+        // Nếu chưa nhận diện được
+        if (data.name === "Unknown" || data.recognized === "Unknown") {
+          unknownCount++;
+          result.innerText = "🔍 Đang quét...";
+          if (unknownCount >= 3) { // Sau 3 lần không nhận
+            popup.style.display = "flex";
+            scanning = false;
+            unknownCount = 0;
+          }
+        }
+      } catch (err) {
+        console.warn('Lỗi gửi frame:', err);
+      }
+    }
+
+    function startStreaming() {
+      if (scanning) return;
+      scanning = true;
+      result.innerText = "🔍 Đang quét khuôn mặt...";
+      setInterval(captureAndSend, 500);
+    }
+
+    // Xác nhận đăng ký
+    btnConfirm.addEventListener("click", async () => {
+      const name = regName.value.trim();
+      if (!name) return alert("Vui lòng nhập tên!");
+
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video, 0, 0);
+      const base64 = canvas.toDataURL("image/jpeg", 0.8);
+
+      result.innerText = "⏳ Đang đăng ký khuôn mặt...";
+      popup.style.display = "none";
+
+      try {
+        const res = await fetch(FLASK_REGISTER_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, image: base64 })
+        });
+        const data = await res.json();
+        alert(data.message || "Đăng ký thành công!");
+        result.innerText = "✅ Đăng ký xong! Tiếp tục quét...";
+        scanning = true;
+      } catch (e) {
+        alert("Lỗi khi đăng ký: " + e);
+      }
+    });
+
+    btnCancel.addEventListener("click", () => {
+      popup.style.display = "none";
+      scanning = true;
+    });
+
+    window.addEventListener('beforeunload', stopCamera);
+    startCamera();
+  </script>
+</body>
+</html>
