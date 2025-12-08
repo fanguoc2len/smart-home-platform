@@ -4,6 +4,31 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Smart Home</title>
+  <!-- BẮT BUỘC FACE-ID TRƯỚC KHI VÀO HOME + HẾT 1 PHÚT PHẢI QUÉT LẠI -->
+  <script>
+    (function() {
+      try {
+        // đã unlock chưa?
+        const ok  = localStorage.getItem('face_auth_ok') === '1';
+        // thời điểm quét mặt gần nhất
+        const t   = parseInt(localStorage.getItem('face_auth_time') || '0', 10);
+
+        const now = Date.now();
+        const MAX_AGE = 60 * 1000; // 1 phút
+
+        // nếu chưa unlock, hoặc token quá hạn 1 phút → đá về trang nhận diện
+        if (!ok || !t || (now - t) > MAX_AGE) {
+          localStorage.removeItem('face_auth_ok');
+          localStorage.removeItem('face_auth_time');
+          window.location.href = 'index.html';
+        }
+      } catch (e) {
+        // nếu có lỗi (browser chặn localStorage, v.v.) → cũng bắt về quét mặt lại
+        window.location.href = 'index.html';
+      }
+    })();
+  </script>
+  
   <style>
     /* --- (Giữ nguyên style gốc của bạn, thêm vài class cho add-card & modal) --- */
     body {
@@ -180,6 +205,104 @@
       text-shadow: 0 0 6px #00ffe0;
     }
 
+    /* ==== PARTY RAINBOW – circle fill + rainbow shadow kiểu Bose ==== */
+
+    /* Card khi đang rainbow */
+    body.scene-party .card.rainbow-mode {
+      position: relative;
+      overflow: hidden;              /* cắt gọn trong card, không tràn sang card khác */
+      border-radius: 16px;
+      background: transparent;
+      /* shadow RGB chạy màu */
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.06),
+        0 0 18px rgba(0,255,255,0.70),
+        0 0 32px rgba(0,255,127,0.55);
+      isolation: isolate;
+      animation: rainbowShadow 6s linear infinite;
+    }
+
+    /* VÒNG TRÒN RGB phóng to, xoay, nhưng bị cắt trong card → chỉ thấy màu */
+    body.scene-party .card.rainbow-mode::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 300%;                    /* phóng siêu to che hết card */
+      height: 300%;
+      transform: translate(-50%, -50%) rotate(0deg);
+      border-radius: 50%;             /* circle */
+      background: conic-gradient(
+        #ff6cab,
+        #ffcf4a,
+        #20e3b2,
+        #00cfff,
+        #a855ff,
+        #ff6cab
+      );
+      z-index: -1;
+      pointer-events: none;
+      animation: rainbowSpinCircle 8s linear infinite;  /* xoay vòng tròn */
+    }
+
+    /* tắt hiệu ứng khi không ở Party */
+    body:not(.scene-party) .card.rainbow-mode::before {
+      display: none;
+    }
+
+    /* circle spin – RGB chạy theo vòng tròn */
+    @keyframes rainbowSpinCircle {
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to   { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    /* SHADOW CHẠY MÀU RAINBOW quanh card */
+    @keyframes rainbowShadow {
+      0% {
+        box-shadow:
+          0 0 0 1px rgba(255,255,255,0.06),
+          0 0 20px rgba(0,255,255,0.8),
+          0 0 40px rgba(0,255,127,0.55);
+      }
+      25% {
+        box-shadow:
+          0 0 0 1px rgba(255,255,255,0.06),
+          0 0 20px rgba(0,255,127,0.8),
+          0 0 40px rgba(255,255,0,0.55);
+      }
+      50% {
+        box-shadow:
+          0 0 0 1px rgba(255,255,255,0.06),
+          0 0 20px rgba(255,255,0,0.8),
+          0 0 40px rgba(255,0,200,0.55);
+      }
+      75% {
+        box-shadow:
+          0 0 0 1px rgba(255,255,255,0.06),
+          0 0 20px rgba(255,0,200,0.8),
+          0 0 40px rgba(0,255,255,0.55);
+      }
+      100% {
+        box-shadow:
+          0 0 0 1px rgba(255,255,255,0.06),
+          0 0 20px rgba(0,255,255,0.8),
+          0 0 40px rgba(0,255,127,0.55);
+      }
+    }
+
+    /* chữ trên card rainbow rõ, không bị chìm */
+    body.scene-party .card.rainbow-mode .device strong,
+    body.scene-party .card.rainbow-mode .device .state-text {
+      color:#ffffff;
+      text-shadow:0 0 6px rgba(0,0,0,0.9);
+    }
+
+    body.scene-party .card.rainbow-mode .device span {
+      color:#e9fff8;
+    }
+
+
+
     /* overlay chỉnh sáng/màu khi long-press */
     .control-overlay {
       display: none;
@@ -195,7 +318,7 @@
 
     @keyframes fadeIn {
       from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
+      to   { opacity: 1; transform: scale(1); }
     }
 
     .control-box {
@@ -267,6 +390,30 @@
       transform: scale(0.9);
     }
 
+    .control-box .rainbow-toggle {
+      margin-top: 10px;
+      width: 100%;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.35);
+      background: rgba(40, 20, 80, 0.95);
+      color: #fef;
+      font-size: 13px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .control-box .rainbow-toggle:hover {
+      background: rgba(80, 40, 130, 0.95);
+      transform: translateY(-1px);
+    }
+    .control-box .rainbow-toggle:active {
+      transform: translateY(1px) scale(0.98);
+    }
+
     /* small helper for mobile */
     @media (max-width:640px) {
       .grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
@@ -310,6 +457,7 @@
       justify-content: center;
       box-shadow: 0 2px 6px rgba(0,0,0,0.4);
       border: 2px solid #fff3;
+      z-index: 20;
     }
 
     .card.delete-mode .delete-badge {
@@ -366,6 +514,43 @@
     <div class="greet" id="greet"></div>
   </header>
 
+  <!-- ===== SCENES SECTION ===== -->
+  <div class="section" data-section="scenes">
+    <h2>Scenes</h2>
+    <div class="grid" id="scenesGrid">
+
+      <div class="card scene-card" data-scene="relax">
+        <div class="scene-content">
+          <span class="scene-icon">🌙</span>
+          <span class="scene-title">Relax</span>
+        </div>
+      </div>
+
+      <div class="card scene-card" data-scene="focus">
+        <div class="scene-content">
+          <span class="scene-icon">💡</span>
+          <span class="scene-title">Focus</span>
+        </div>
+      </div>
+
+      <div class="card scene-card" data-scene="party">
+        <div class="scene-content">
+          <span class="scene-icon">🎉</span>
+          <span class="scene-title">Party</span>
+        </div>
+      </div>
+
+      <div class="card scene-card" data-scene="night">
+        <div class="scene-content">
+          <span class="scene-icon">🌃</span>
+          <span class="scene-title">Night</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <!-- ===== END SCENES SECTION ===== -->
+  
   <!-- ENTRY -->
   <div class="section" data-section="entry">
     <h2>Entry</h2>
@@ -484,9 +669,16 @@
     </div>
   </div>
 
+  <!-- ====== SCRIPT 1: quản lý card & thiết bị ====== -->
   <script>
     // --- storage key
     const STORAGE_KEY = "my_smart_devices_v1";
+    // --- Anti-bounce: chặn Firebase overwrite trong 600ms sau khi user toggle ---
+    window._preventFirebaseSync = false;
+    function blockFirebaseSync() {
+      window._preventFirebaseSync = true;
+      setTimeout(() => window._preventFirebaseSync = false, 600);
+    }
 
     // Fix pointer events cho mobile (Chrome / Safari)
     if (window.matchMedia("(pointer: coarse)").matches) {
@@ -542,42 +734,57 @@
 
     // Visual update helper
     function updateCardVisual(card, dev) {
+      const isRainbow = (dev.type === "light" && dev.rainbow === true);
+
       let level = 0;
-      if (dev.type === "light") level = (dev.brightness ?? 100) / 100;
+      if (dev.type === "light")    level = (dev.brightness ?? 100) / 100;
       else if (dev.type === "fan") level = (dev.speed ?? 3) / 3;
       else if (dev.type === "speaker") level = (dev.volume ?? 100) / 100;
       level = Math.max(0, Math.min(level, 1));
 
-      if (dev.type === 'light') dev.state = (dev.brightness ?? 0) > 0;
-      else if (dev.type === 'fan') dev.state = (dev.speed ?? 0) > 0;
+      if (dev.type === 'light')   dev.state = (dev.brightness ?? 0) > 0;
+      else if (dev.type === 'fan')    dev.state = (dev.speed ?? 0) > 0;
       else if (dev.type === 'speaker') dev.state = (dev.volume ?? 0) > 0;
 
-      const accentColor = (dev.type === 'light' && dev.color) ? dev.color : '#00fff0';
+      const accentColor  = (dev.type === 'light' && dev.color) ? dev.color : '#00fff0';
       const accentStrong = hexToRgba(accentColor, 0.65);
 
-      if (level <= 0) {
-        card.style.background = 'rgba(255,255,255,0.04)';
-        card.style.boxShadow = 'none';
-        card.style.borderColor = 'rgba(255,255,255,0.04)';
-        card.classList.remove('on');
+      if (isRainbow && dev.state) {
+        // 🎉 Rainbow mode → giao cho CSS .rainbow-mode
+        card.classList.add('rainbow-mode');
+        card.style.background  = '';
+        card.style.boxShadow   = '';
+        card.style.borderColor = '';
       } else {
-        const blur = 10 + level * 25;
-        const alpha = 0.25 + level * 0.45;
-        card.style.background =
-          `linear-gradient(0deg, ${hexToRgba(accentColor, 0.12)} ${level * 100}%, rgba(255,255,255,0.05) ${level * 100}%)`;
-        card.style.boxShadow = `0 0 ${blur}px ${hexToRgba(accentColor, alpha)}`;
-        card.style.borderColor = accentStrong;
-        card.classList.add('on');
+        card.classList.remove('rainbow-mode');
+
+        if (level <= 0 || !dev.state) {
+          card.style.background  = 'rgba(255,255,255,0.04)';
+          card.style.boxShadow   = 'none';
+          card.style.borderColor = 'rgba(255,255,255,0.04)';
+          card.classList.remove('on');
+        } else {
+          const blur  = 10 + level * 25;
+          const alpha = 0.25 + level * 0.45;
+          card.style.background =
+            `linear-gradient(0deg, ${hexToRgba(accentColor, 0.12)} ${level * 100}%, rgba(255,255,255,0.05) ${level * 100}%)`;
+          card.style.boxShadow   = `0 0 ${blur}px ${hexToRgba(accentColor, alpha)}`;
+          card.style.borderColor = accentStrong;
+          card.classList.add('on');
+        }
       }
+
       card.style.transition = "background 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease";
 
       const title = card.querySelector('strong');
       if (title) {
-        title.style.color = `rgba(255,255,255,${0.6 + 0.4 * level})`;
+        const tLevel = dev.state ? 1 : level;
+        title.style.color = `rgba(255,255,255,${0.6 + 0.4 * tLevel})`;
       }
 
       if (typeof updateStateText === 'function') updateStateText(card, dev);
     }
+
 
     function updateStateText(card, dev) {
       const stateText = card.querySelector('.state-text');
@@ -598,18 +805,26 @@
       }
     }
 
-    // ---------- Long-press handling ----------
-    function attachLongPress(card, dev, opts = {}) {
+    // ---------- Gộp tap + long-press ----------
+    function attachPressHandlers(card, dev, onTap) {
+      const threshold = 600; // ms
       let timer = null;
-      const threshold = 600;
-      let longPressTriggered = false;
+      let longPressed = false;
+      let isDown = false;
+
+      function clearTimer() {
+        if (timer) {
+          clearTimeout(timer);
+          timer = null;
+        }
+      }
 
       function removeOverlayIfAny() {
         document.querySelectorAll('.control-overlay').forEach(o => o.remove());
       }
 
       function openOverlay() {
-        longPressTriggered = true;
+        longPressed = true;
         card.dataset.longpressing = 'true';
 
         removeOverlayIfAny();
@@ -651,7 +866,7 @@
           box.innerHTML = `
             <h4>${titleMap.sensor}</h4>
             <div style="text-align:left; margin-top:10px; color:#bcd;">
-              Không có tùy chọn bổ sung cho cảm biến.
+              Không có tùy chọn bổ sung cho thiết bị này.
             </div>
           `;
         }
@@ -687,12 +902,59 @@
         }
 
         if (color) {
-          color.addEventListener('input', () => {
+          const onColor = () => {
             dev.color = color.value;
+
+            // Đổi màu thủ công → tắt rainbow cho riêng đèn này
+            if (dev.type === 'light') {
+              dev.rainbow = false;
+              dev.state = true;
+            }
+
             updateCardVisual(card, dev);
+            if (typeof updateStateText === 'function') updateStateText(card, dev);
+
+            saveAndRefresh(false, false);
+            window.saveDeviceDebounced && window.saveDeviceDebounced(dev);
+          };
+          color.addEventListener('input', onColor);
+          color.addEventListener('change', onColor);
+        }
+        // 🔁 Nút bật/tắt rainbow – chỉ hiện khi đang ở scene Party
+        const currentScene = window.localStorage
+          ? window.localStorage.getItem("currentScene")
+          : null;
+
+        if (dev.type === 'light' && currentScene === 'party') {
+          const rb = document.createElement('button');
+          rb.className = 'rainbow-toggle';
+
+          const updateRbLabel = () => {
+            rb.textContent = dev.rainbow
+              ? '🌈 Đang nhảy cầu vồng'
+              : '🌈 Bật nhảy cầu vồng';
+          };
+          updateRbLabel();
+
+          rb.addEventListener('click', () => {
+            dev.rainbow = !dev.rainbow;
+
+            if (dev.rainbow) {
+              if (dev.brightness == null || dev.brightness === 0) {
+                dev.brightness = 100;
+              }
+              dev.state = true;
+            }
+
+            updateRbLabel();
+            updateCardVisual(card, dev);
+            if (typeof updateStateText === 'function') updateStateText(card, dev);
+
             saveAndRefresh(false, false);
             window.saveDeviceDebounced && window.saveDeviceDebounced(dev);
           });
+
+          box.appendChild(rb);
         }
 
         overlay.addEventListener('click', (ev) => {
@@ -700,68 +962,60 @@
             overlay.remove();
             setTimeout(() => {
               delete card.dataset.longpressing;
-              longPressTriggered = false;
+              longPressed = false;
             }, 20);
           }
         });
       }
 
-      function start(e) {
+      function handleDown(e) {
+        if (e.button !== undefined && e.button !== 0) return; // không phải chuột trái
         if (e.touches && e.touches.length > 1) return;
-        if (timer) return;
-        longPressTriggered = false;
+
+        isDown = true;
+        longPressed = false;
+        clearTimer();
         timer = setTimeout(() => {
           timer = null;
-          openOverlay();
+          if (isDown) openOverlay();
         }, threshold);
       }
 
-      function end(e) {
-        if (timer) {
-          clearTimeout(timer);
-          timer = null;
-        }
+      function handleUp(e) {
+        if (!isDown) return;
+        isDown = false;
+        clearTimer();
 
-        if (longPressTriggered || card.dataset.longpressing === 'true') {
-          setTimeout(() => {
-            if (card.dataset.longpressing) delete card.dataset.longpressing;
-            longPressTriggered = false;
-          }, 20);
-          if (e && typeof e.stopPropagation === 'function') {
-            e.stopPropagation();
-            try { e.preventDefault(); } catch(_) {}
-          }
+        if (longPressed || card.dataset.longpressing === 'true') {
+          // vừa long-press xong → không toggle
+          e.preventDefault && e.preventDefault();
+          e.stopPropagation && e.stopPropagation();
           return;
         }
 
-        if (typeof opts.onTap === 'function') opts.onTap();
+        if (typeof onTap === 'function') {
+          onTap();
+        }
       }
 
-      function cancel() {
-        if (timer) { clearTimeout(timer); timer = null; }
-        if (card.dataset.longpressing) delete card.dataset.longpressing;
-        longPressTriggered = false;
+      function handleCancel() {
+        isDown = false;
+        clearTimer();
       }
 
       if (window.PointerEvent) {
-        card.addEventListener('pointerdown', start);
-        card.addEventListener('pointerup', end);
-        card.addEventListener('pointercancel', cancel);
-        card.addEventListener('pointerleave', cancel);
+        card.addEventListener('pointerdown', handleDown);
+        card.addEventListener('pointerup',   handleUp);
+        card.addEventListener('pointercancel', handleCancel);
+        card.addEventListener('pointerleave',  handleCancel);
       } else {
-        card.addEventListener('touchstart', function(e){ start(e); }, { passive: false });
-        card.addEventListener('touchend', function(e){ end(e); }, { passive: false });
-        card.addEventListener('touchcancel', cancel);
-        card.addEventListener('click', function(e){
-          if (card.dataset.longpressing === 'true' || longPressTriggered) {
-            if (e && e.stopPropagation) {
-              e.stopPropagation();
-              try { e.preventDefault(); } catch(_) {}
-            }
-            return;
-          }
-          if (typeof opts.onTap === 'function') opts.onTap();
-        });
+        // Fallback cũ (thiết bị không hỗ trợ PointerEvent)
+        card.addEventListener('touchstart', handleDown, { passive: true });
+        card.addEventListener('touchend',   handleUp,   { passive: false });
+        card.addEventListener('touchcancel', handleCancel);
+        card.addEventListener('mousedown',  handleDown);
+        card.addEventListener('mouseup',    handleUp);
+        card.addEventListener('mouseleave', handleCancel);
       }
     }
 
@@ -772,16 +1026,16 @@
       card.dataset.generated = "true";
       card.id = dev.id;
 
-      if (dev.type === 'light') dev.state = (dev.brightness ?? 100) > 0;
-      else if (dev.type === 'fan') dev.state = (dev.speed ?? 1) > 0;
+      if (dev.type === 'light')      dev.state = (dev.brightness ?? 100) > 0;
+      else if (dev.type === 'fan')   dev.state = (dev.speed ?? 1) > 0;
       else if (dev.type === 'speaker') dev.state = (dev.volume ?? 50) > 0;
 
       if (dev.state) card.classList.add('on');
 
-      const icon = dev.type === 'fan' ? '🌀' :
-                   (dev.type === 'speaker' ? '🔊' :
-                   (dev.type === 'thermostat' ? '🌡️' :
-                   (dev.type === 'sensor' ? '📟' : '💡')));
+      const icon = dev.type === 'fan'       ? '🌀' :
+                   dev.type === 'speaker'   ? '🔊' :
+                   dev.type === 'thermostat'? '🌡️' :
+                   dev.type === 'sensor'    ? '📟' : '💡';
 
       card.innerHTML = `
         <div class="device">
@@ -795,27 +1049,50 @@
 
       updateStateText(card, dev);
 
+      // toggle on click (tap)
       const doToggle = () => {
+        blockFirebaseSync();
         if (card.dataset.longpressing === 'true') return;
         if (dev.type === 'thermostat') return;
 
-        dev.state = !dev.state;
+        const wasOn        = !!dev.state;
+        const oldBright    = typeof dev.brightness === 'number' ? dev.brightness : 0;
+        const oldSpeed     = typeof dev.speed === 'number' ? dev.speed : 0;
+        const oldVolume    = typeof dev.volume === 'number' ? dev.volume : 0;
 
-        if (!dev.state) {
-          if (typeof dev.brightness !== 'undefined') dev.prevBrightness = dev.brightness;
-          if (typeof dev.speed !== 'undefined') dev.prevSpeed = dev.speed;
-          if (typeof dev.volume !== 'undefined') dev.prevVolume = dev.volume;
+        // đảo trạng thái
+        dev.state = !wasOn;
 
-          if (dev.type === 'light') dev.brightness = 0;
-          if (dev.type === 'fan') dev.speed = 0;
-          if (dev.type === 'speaker') dev.volume = 0;
-        } else {
-          if (dev.type === 'light') dev.brightness =
-            (typeof dev.prevBrightness !== 'undefined') ? dev.prevBrightness : (dev.brightness ?? 100);
-          if (dev.type === 'fan') dev.speed =
-            (typeof dev.prevSpeed !== 'undefined') ? dev.prevSpeed : (dev.speed ?? 1);
-          if (dev.type === 'speaker') dev.volume =
-            (typeof dev.prevVolume !== 'undefined') ? dev.prevVolume : (dev.volume ?? 50);
+        if (dev.type === 'light') {
+          if (!dev.state) {
+            if (oldBright > 0) dev.prevBrightness = oldBright;
+            dev.brightness = 0;
+          } else {
+            let target = (typeof dev.prevBrightness === 'number' && dev.prevBrightness > 0)
+              ? dev.prevBrightness
+              : (oldBright > 0 ? oldBright : 100);
+            dev.brightness = target;
+          }
+        } else if (dev.type === 'fan') {
+          if (!dev.state) {
+            if (oldSpeed > 0) dev.prevSpeed = oldSpeed;
+            dev.speed = 0;
+          } else {
+            let target = (typeof dev.prevSpeed === 'number' && dev.prevSpeed > 0)
+              ? dev.prevSpeed
+              : (oldSpeed > 0 ? oldSpeed : 1);
+            dev.speed = target;
+          }
+        } else if (dev.type === 'speaker') {
+          if (!dev.state) {
+            if (oldVolume > 0) dev.prevVolume = oldVolume;
+            dev.volume = 0;
+          } else {
+            let target = (typeof dev.prevVolume === 'number' && dev.prevVolume > 0)
+              ? dev.prevVolume
+              : (oldVolume > 0 ? oldVolume : 50);
+            dev.volume = target;
+          }
         }
 
         updateCardVisual(card, dev);
@@ -824,14 +1101,15 @@
         window.saveDeviceDebounced && window.saveDeviceDebounced(dev);
       };
 
-      attachLongPress(card, dev, { onTap: doToggle });
+      // Gắn handler tap + long-press
+      attachPressHandlers(card, dev, doToggle);
 
       const controls = card.querySelector('.controls');
 
       if (dev.type === 'light') {
-        const label = document.createElement('div'); label.className='label'; label.textContent='Điều chỉnh đèn';
+        const label  = document.createElement('div'); label.className='label'; label.textContent='Điều chỉnh đèn';
         const bright = document.createElement('input'); bright.type='range'; bright.min=0; bright.max=100; bright.value = dev.brightness ?? 100;
-        const color = document.createElement('input'); color.type='color'; color.value = dev.color ?? '#ffffff';
+        const color  = document.createElement('input'); color.type='color'; color.value = dev.color ?? '#ffffff';
         controls.appendChild(label);
         controls.appendChild(bright);
         controls.appendChild(color);
@@ -875,7 +1153,7 @@
 
       } else if (dev.type === 'speaker') {
         const label = document.createElement('div'); label.className='label'; label.textContent='Âm lượng';
-        const vol = document.createElement('input'); vol.type='range'; vol.min=0; vol.max=100; vol.value = dev.volume ?? 50;
+        const vol   = document.createElement('input'); vol.type='range'; vol.min=0; vol.max=100; vol.value = dev.volume ?? 50;
         controls.appendChild(label);
         controls.appendChild(vol);
 
@@ -936,19 +1214,43 @@
         }
       });
     }
+    
+    // ===== REST base cho servo cửa =====
+    const DOOR_FB_REST_BASE =
+      "https://do-an-2-91a3c-default-rtdb.asia-southeast1.firebasedatabase.app";
 
+    // doorKey: 'frontDoor' hoặc 'sideDoor'
+    // isOpen: true = mở / unlock, false = đóng / lock
+    async function pushDoorServoState(doorKey, isOpen) {
+      try {
+        const payload = {
+          state: isOpen ? "open" : "closed",
+          ts: Date.now()
+        };
+        await fetch(`${DOOR_FB_REST_BASE}/doors/${doorKey}.json`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        console.log("🚪 Gửi servo:", doorKey, payload);
+      } catch (e) {
+        console.error("❌ Lỗi gửi state servo:", e);
+      }
+    }
+    
     // initial static cards
     function attachStaticHandlers() {
       const pairs = [
-        ['doorCard','doorState','door'],
+        // [id của card, id span state, key cho servo]
+        ['doorCard','doorState','frontDoor'],   // Front Door
         ['sconcesCard','sconcesState','sconces'],
         ['ceilingCard','ceilingState','ceiling'],
         ['accentCard','accentState','accent'],
         ['tableCard','tableState','table'],
-        ['sideDoorCard','sideDoorState','sidedoor']
+        ['sideDoorCard','sideDoorState','sideDoor'] // Side Door
       ];
 
-      pairs.forEach(([cid,sid,cmd]) => {
+      pairs.forEach(([cid,sid,key]) => {
         const el = document.getElementById(cid);
         if (!el) return;
 
@@ -956,17 +1258,36 @@
                          ((cid === 'sideDoorCard') ? 'Closed' : 'Off');
 
         const toggleFn = () => {
-          if (el.dataset.longpressing === 'true') return;
+          blockFirebaseSync();
           const txt = document.getElementById(sid);
-          const on = !el.classList.contains('on');
+          const on  = !el.classList.contains('on');
           el.classList.toggle('on');
-          if (txt) txt.textContent = on ? 'On' : offLabel;
+
+          // label khi bật
+          let labelOn = 'On';
+          if (cid === 'doorCard')      labelOn = 'Unlocked'; // cửa trước
+          else if (cid === 'sideDoorCard') labelOn = 'Open'; // cửa hông
+
+          if (txt) txt.textContent = on ? labelOn : offLabel;
+
+          // 🚪 Nếu là 2 card cửa → đẩy state servo lên Firebase
+          if (cid === 'doorCard') {
+            // front door: open = unlock, closed = lock
+            pushDoorServoState('frontDoor', on);
+          } else if (cid === 'sideDoorCard') {
+            // side door: open/closed
+            pushDoorServoState('sideDoor', on);
+          }
         };
 
-        attachLongPress(el, { type: cmd }, { onTap: toggleFn });
-        addDeleteBadge(el, { id: cid, name: cmd });
+        // dùng cùng handler tap + long-press như cũ
+        attachPressHandlers(el, { type: key }, toggleFn);
+
+        addDeleteBadge(el, { id: cid, name: key });
       });
     }
+
+    
 
     // handle clicking add-cards to open modal
     function initAddCards() {
@@ -993,7 +1314,7 @@
       document.getElementById('modalAdd').addEventListener('click', ()=>{
         const type = document.getElementById('modalType').value;
         const name = document.getElementById('modalName').value.trim();
-        const pin = document.getElementById('modalPin').value.trim();
+        const pin  = document.getElementById('modalPin').value.trim();
         const target = document.getElementById('addModal').dataset.target || 'entry';
         if (!name || !pin) { alert('Vui lòng nhập tên & chân GPIO'); return; }
 
@@ -1009,10 +1330,10 @@
           pin,
           section: target,
           state: false,
-          brightness: type==='light' ? 100 : undefined,
-          color: type==='light' ? '#ffffff' : undefined,
-          speed: type==='fan' ? 1 : undefined,
-          volume: type==='speaker' ? 50 : undefined,
+          brightness:  type==='light'      ? 100 : undefined,
+          color:       type==='light'      ? '#ffffff' : undefined,
+          speed:       type==='fan'        ? 1 : undefined,
+          volume:      type==='speaker'    ? 50 : undefined,
           temperature: type==='thermostat' ? 24 : undefined
         };
         if (!Array.isArray(window.saved)) window.saved = [];
@@ -1104,11 +1425,12 @@
     }
   </script>
 
+  <!-- CHO PHÉP CLIENT ĐẨY LỆNH VOICE -->
   <script>
-    // CHỈ đổi dòng dưới thành true để client đẩy lệnh
     window.APP_CLIENT_PUSH_ENABLED = true;
   </script>
 
+  <!-- ====== SCRIPT 2: Voice UI (ghi âm + gửi Flask) ====== -->
   <script>
     function normalizeSpokenText(t = "") {
       t = (t || "")
@@ -1127,36 +1449,42 @@
         .replace(/\bmo den\b/g, "bat den")
         .replace(/\btat het\b/g, "tat tat ca")
         .replace(/\bbat het\b/g, "bat tat ca")
-        .replace(/\bden tron\b/g, "den trong");
+        .replace(/\bden tron\b/g, "den trong")
+        // map thêm cho scene & từ thường gặp
+        .replace(/\bthu gian\b/g, "relax")
+        .replace(/\btap trung\b/g, "focus")
+        .replace(/\bparty\b/g, "party")
+        .replace(/\bban dem\b/g, "night")
+        .replace(/\bdi ngu\b/g, "night");
       return t;
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const VOICE_ENDPOINT = "https://christinia-sorediate-fred.ngrok-free.dev/voice";
-      const VOICE_TOKEN = null;
-      const BTN  = document.getElementById("voiceBtn");
-      const PILL = document.getElementById("voicePill");
+    document.addEventListener("DOMContentLoaded", () => {
+    const VOICE_ENDPOINT = "https://christinia-sorediate-fred.ngrok-free.dev/voice";
+    const VOICE_TOKEN = null;
+    const BTN  = document.getElementById("voiceBtn");
+    const PILL = document.getElementById("voicePill");
 
-      if (!BTN || !PILL) {
-        console.error('Voice UI missing (#voiceBtn / #voicePill)');
-        return;
-      }
+    if (!BTN || !PILL) {
+      console.error("Voice UI missing (#voiceBtn / #voicePill)");
+      return;
+    }
 
-      let media, rec, chunks = [], isRecording = false;
+    let media, rec, chunks = [], isRecording = false;
 
-      function pill(msg, kind="info", holdMs=null) {
-        PILL.textContent = msg || "";
-        PILL.classList.add("show");
-        PILL.style.borderColor =
-          kind==="ok"  ? "#00e6a8" :
-          kind==="err" ? "#ff6666" :
+    function pill(msg, kind = "info", holdMs = null) {
+      PILL.textContent = msg || "";
+      PILL.classList.add("show");
+      PILL.style.borderColor =
+        kind === "ok"  ? "#00e6a8" :
+        kind === "err" ? "#ff6666" :
                          "rgba(0,212,255,.25)";
-        clearTimeout(pill._t);
-        pill._t = setTimeout(
-          () => PILL.classList.remove("show"),
-          (holdMs != null ? holdMs : (kind === "err" ? 4000 : 2200))
-        );
-      }
+      clearTimeout(pill._t);
+      pill._t = setTimeout(
+        () => PILL.classList.remove("show"),
+        holdMs != null ? holdMs : (kind === "err" ? 4000 : 2200)
+      );
+    }
 
       function bestMime() {
         const list = [
@@ -1234,11 +1562,7 @@
           startRecord._auto = setTimeout(stopRecord, 8000);
         } catch (e) {
           console.error(e);
-          pill(
-            "Gửi audio lỗi: " + ((e && e.message) ? e.message : "network"),
-            "err",
-            4500
-          );
+          pill("Gửi audio lỗi: " + ((e && e.message) ? e.message : "network"), "err", 4500);
         }
       }
 
@@ -1263,26 +1587,74 @@
           fd.append("audio", file);
           fd.append("execute", "1");
 
-          const res  = await fetch(VOICE_ENDPOINT, { method: "POST", body: fd });
-          const data = await res.json().catch(()=> ({}));
+          const headers = { "X-Execute": "1" };
+          if (VOICE_TOKEN) {
+            headers["X-Voice-Token"] = VOICE_TOKEN;
+          }
+          if (window.VOICE_CLIENT_ID) {
+            headers["X-Client-Id"] = window.VOICE_CLIENT_ID;
+          }
+
+          const res  = await fetch(VOICE_ENDPOINT, {
+            method: "POST",
+            body: fd,
+            headers
+          });
+          const data = await res.json().catch(() => ({}));
+
+
           if (!res.ok) {
             pill("AI lỗi: " + (((data && data.message) || res.status)), "err", 5000);
             return;
           }
+
           const text = (((data && data.text) || "")).trim();
-          const cmd  = (data && data.command) || null;
+          let cmd  = (data && data.command) || null;
 
-          if (cmd) cmd.raw_text = normalizeSpokenText(text);
-          pill(text ? `🗣️ "${text}"` : "Đã xử lý xong", "ok");
-          console.log("VOICE→CMD:", cmd);
+          // thêm raw_text cho command & từng phần tử multi
+          if (cmd) {
+            const folded = normalizeSpokenText(text);
+            if (!cmd.raw_text) cmd.raw_text = folded;
+            if (Array.isArray(cmd.multi)) {
+              cmd.multi = cmd.multi.map(c => ({
+                ...c,
+                raw_text: c.raw_text || folded
+              }));
+            }
+          }
 
-          if (
-            cmd &&
-            window.APP_CLIENT_PUSH_ENABLED === true &&
-            typeof window.applyVoiceCommandToFirebase === "function"
-          ) {
-            try { await window.applyVoiceCommandToFirebase(cmd); }
-            catch (e) { console.error("applyVoiceCommandToFirebase error:", e); }
+          let pillMsg = text ? `🗣️ "${text}"` : "Đã xử lý xong";
+          if (data && data.scheduled && data.scheduled.label) {
+            pillMsg += ` · ⏱ ${data.scheduled.label}`;
+          }
+          pill(pillMsg, "ok");
+          console.log("VOICE→CMD:", cmd, data && data.scheduled ? data.scheduled : null);
+
+
+          if (cmd && window.APP_CLIENT_PUSH_ENABLED === true) {
+            // ===== MULTI-COMMAND (tắt hết / bật hết) =====
+            if (Array.isArray(cmd.multi) && cmd.multi.length) {
+              console.log("VOICE MULTI:", cmd.multi);
+              if (typeof window.applyVoiceCommandToFirebase === "function") {
+                for (const c of cmd.multi) {
+                  try {
+                    await window.applyVoiceCommandToFirebase(c);
+                  } catch (e) {
+                    console.error("applyVoiceCommandToFirebase multi error:", e);
+                  }
+                }
+              }
+              return;
+            }
+
+            // ===== SINGLE COMMAND =====
+            if (typeof window.applyVoiceCommandToFirebase === "function") {
+              try {
+                await window.applyVoiceCommandToFirebase(cmd);
+              } catch (e) {
+                console.error("applyVoiceCommandToFirebase error:", e);
+              }
+            }
           }
 
         } catch (e) {
@@ -1306,10 +1678,11 @@
         BTN.addEventListener("click", onBtn, { passive: false });
       }
 
-      setTimeout(()=> pill("Nhấn 🎤 để nói…"), 900);
+      setTimeout(() => pill("Nhấn 🎤 để nói…"), 900);
     });
   </script>
 
+  <!-- ====== SCRIPT 3: mapping giọng nói → device (findDeviceForVoice) ====== -->
   <script>
     function vnFold(s=''){
       return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'')
@@ -1350,13 +1723,36 @@
           t.includes('hall') || t.includes('sanh'))          return 'entry';
       return null;
     }
+
     function findDeviceForVoice(cmd){
-      const raw = (cmd && cmd.raw_text) || '';
+      const raw = (cmd && cmd.raw_text) || "";
+
+      // ===== 1️⃣ LỆNH "BẬT TẤT CẢ" / "TẮT TẤT CẢ" =====
+      if (cmd && (cmd.action === "on" || cmd.action === "off") && !cmd.device_id){
+        const list = (window.saved || []).filter(d => d.type === "light");
+        if (list.length > 0){
+          return {
+            multi_override: true,
+            devices: list
+          };
+        }
+      }
+
+      // ===== 2️⃣ ƯU TIÊN SERVER GỬI device_id =====
+      if (cmd && cmd.device_id && Array.isArray(window.saved)) {
+        const direct = window.saved.find(d => d.id === cmd.device_id);
+        if (direct) return direct;
+      }
+
+      // ===== 3️⃣ Fallback fuzzy matching =====
       const sect = areaToSection((cmd && cmd.area) || null, raw);
-      const wantType = ((cmd && (cmd.device === 'Light' || cmd.device === 'NeoPixel')) ? 'light'
-                       : ((cmd && cmd.device) ? cmd.device.toLowerCase() : null));
+      const wantType =
+        (cmd && (cmd.device === 'Light' || cmd.device === 'NeoPixel')) ? 'light'
+        : (cmd && cmd.device) ? cmd.device.toLowerCase()
+        : null;
 
       let best = null, bestScore = 0;
+      const SCORE_MIN = 0.4;
 
       for (const dev of (window.saved || [])){
         const cands = [dev.name].concat(Array.isArray(dev.aliases)? dev.aliases : []);
@@ -1367,7 +1763,7 @@
         if (score > bestScore){ bestScore = score; best = dev; }
       }
 
-      if (!best || bestScore < 0.6){
+      if (!best || bestScore < SCORE_MIN){
         const area = (cmd?.area || '').toLowerCase();
         const sect2 = area.includes('living') ? 'living' :
                       area.includes('kitchen') ? 'kitchen' :
@@ -1376,15 +1772,14 @@
         const pool2 = wantType ? pool.filter(d => d.type === wantType) : pool;
         best = pool2[0] || (window.saved||[]).find(d => d.type === 'light') || null;
       }
+
       return best;
     }
-    window.voiceDebug = () => console.table((window.saved||[]).map(d=>({
-      id:d.id, name:d.name, type:d.type, section:d.section, aliases:d.aliases
-    })));
+
   </script>
 
+  <!-- ====== SCRIPT 4: colorNameToHex ====== -->
   <script>
-    // ===== colorNameToHex =====
     function colorNameToHex(name){
       if (!name) return null;
       let s = String(name).trim();
@@ -1438,137 +1833,396 @@
     }
   </script>
 
+  <!-- ====== SCRIPT 5: áp lệnh giọng nói vào device + Firebase ====== -->
   <script>
-    /** Áp lệnh giọng nói + support delay */
-    window.applyVoiceCommandToFirebase = async function(cmd){
-      try {
-        const dev = (typeof findDeviceForVoice === 'function') ? findDeviceForVoice(cmd) : null;
-        if (!dev){ console.warn("Không tìm thấy thiết bị phù hợp:", cmd); return; }
-        const card = document.getElementById(dev.id);
+      /** Áp lệnh giọng nói + support delay */
+      window.applyVoiceCommandToFirebase = async function (cmd) {
+        try {
+          const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+          const n = (x, def = 0) =>
+            typeof x === "number" && isFinite(x) ? x : def;
 
-        const clamp = (v,min,max)=> Math.max(min, Math.min(max, v));
-        const n = (x, def=0) => (typeof x === 'number' && isFinite(x)) ? x : def;
-
-        function getDelayMs(c) {
-          if (!c) return 0;
-          const cand = [
-            c.delay_seconds,
-            c.after_seconds,
-            c.delay,
-            c.wait_seconds,
-            c.wait
-          ];
-          for (let v of cand) {
-            if (typeof v === 'string') {
-              const m = v.match(/(\d+(\.\d+)?)/);
-              if (m) v = parseFloat(m[1]);
+          function getDelayMs(c) {
+            if (!c) return 0;
+            const cand = [
+              c.delay_seconds,
+              c.after_seconds,
+              c.delay,
+              c.wait_seconds,
+              c.wait,
+            ];
+            for (let v of cand) {
+              if (typeof v === "string") {
+                const m = v.match(/(\d+(\.\d+)?)/);
+                if (m) v = parseFloat(m[1]);
+              }
+              if (typeof v === "number" && isFinite(v) && v > 0) {
+                return v * 1000;
+              }
             }
-            if (typeof v === 'number' && isFinite(v) && v > 0) {
-              return v * 1000;
-            }
+            return 0;
           }
-          return 0;
+
+          // ==== DOOR – điều khiển cửa chính / cửa bên hông ====
+          if (cmd && cmd.type === "door" && cmd.door_id) {
+            const delayMs = getDelayMs(cmd);
+
+            const runDoor = async () => {
+              const doorKey = cmd.door_id; // 'frontDoor' hoặc 'sideDoor'
+              const action  = cmd.action || "toggle";
+
+              // xác định trạng thái muốn set
+              let targetOpen;
+              if (action === "open") {
+                targetOpen = true;
+              } else if (action === "close") {
+                targetOpen = false;
+              } else {
+                // toggle: đọc state hiện tại từ UI
+                const cardId = (doorKey === "frontDoor") ? "doorCard" : "sideDoorCard";
+                const cardEl = document.getElementById(cardId);
+                const isOn   = !!(cardEl && cardEl.classList.contains("on"));
+                targetOpen   = !isOn;
+              }
+
+              // cập nhật UI giống click tay
+              if (doorKey === "frontDoor") {
+                const cardEl = document.getElementById("doorCard");
+                const spanEl = document.getElementById("doorState");
+                if (cardEl) cardEl.classList.toggle("on", targetOpen);
+                if (spanEl) spanEl.textContent = targetOpen ? "Unlocked" : "Locked";
+              } else if (doorKey === "sideDoor") {
+                const cardEl = document.getElementById("sideDoorCard");
+                const spanEl = document.getElementById("sideDoorState");
+                if (cardEl) cardEl.textContent = targetOpen ? "Open" : "Closed";
+              }
+
+              // gửi state servo lên Firebase (giống toggleFn)
+              await pushDoorServoState(doorKey, targetOpen);
+            };
+
+            if (delayMs > 0) {
+              console.log("⏱ Delay DOOR", delayMs, "ms");
+              setTimeout(() => {
+                runDoor().catch(e => console.error("runDoor error:", e));
+              }, delayMs);
+            } else {
+              await runDoor();
+            }
+
+            // đã xử lý lệnh, không cần xuống dưới nữa
+            return;
+          }
+
+          // SCENE – đổi giao diện + device theo scene
+          if (cmd && cmd.type === "scene") {
+            const action  = cmd.action || "apply";
+            const sceneId = cmd.scene_id || null;
+            const delayMs = getDelayMs(cmd);
+
+            const runScene = async () => {
+              // ---- CLEAR: thoát khỏi scene bất kỳ ----
+              if (action === "clear" || (!sceneId && action !== "apply")) {
+                console.log("VOICE → SCENE CLEAR:", cmd);
+
+                if (typeof window.clearScene === "function") {
+                  // scenes.js đã expose clearScene()
+                  window.clearScene();
+                } else if (typeof window.applySceneById === "function") {
+                  // fallback: clear rule scene trong Firebase
+                  await window.applySceneById(null);
+                } else {
+                  console.warn("Scene CLEAR nhận được nhưng không có clearScene/applySceneById:", cmd);
+                }
+                return;
+              }
+
+              // ---- APPLY: bật / chuyển sang một scene cụ thể ----
+              if (sceneId) {
+                console.log("VOICE → SCENE APPLY:", sceneId, cmd);
+                if (typeof window.applyScene === "function") {
+                  // Đổi pill + background + applySceneLocally + gọi Flask
+                  window.applyScene(sceneId);
+                } else if (typeof window.applySceneById === "function") {
+                  await window.applySceneById(sceneId);
+                } else {
+                  console.warn("Scene command nhận được nhưng chưa có applyScene/applySceneById:", cmd);
+                }
+              }
+            };
+
+            if (delayMs > 0) {
+              console.log("⏱ Delay SCENE", delayMs, "ms");
+              setTimeout(() => {
+                runScene().catch(e => console.error("runScene(scene) error:", e));
+              }, delayMs);
+            } else {
+              await runScene();
+            }
+            return;
+          }
+
+          // 2️⃣ DOOR – cửa chính / cửa bên hông
+          if (cmd && cmd.type === "door" && cmd.door_id) {
+            const delayMs = getDelayMs(cmd);
+
+            const runDoor = async () => {
+              const doorId = cmd.door_id; // 'frontDoor' | 'sideDoor'
+              const action = cmd.action || "toggle";
+
+              const cardId = doorId === "sideDoor" ? "sideDoorCard" : "doorCard";
+              const stateId = doorId === "sideDoor" ? "sideDoorState" : "doorState";
+
+              const span = document.getElementById(stateId);
+              const card = document.getElementById(cardId);
+
+              const text = (span && span.textContent ? span.textContent : "")
+                .toLowerCase();
+              const isOpen =
+                text.includes("unlock") ||
+                text.includes("open") ||
+                text.includes("mở");
+              const isClosed =
+                text.includes("lock") ||
+                text.includes("closed") ||
+                text.includes("đóng");
+
+              let wantOpen;
+              if (action === "open" || action === "unlock") wantOpen = true;
+              else if (action === "close" || action === "lock") wantOpen = false;
+              else {
+                // toggle
+                if (isClosed && !isOpen) wantOpen = true;
+                else wantOpen = false;
+              }
+
+              // UI
+              if (span) span.textContent = wantOpen ? "Unlocked" : "Locked";
+              if (card) {
+                if (wantOpen) card.classList.add("on");
+                else card.classList.remove("on");
+              }
+
+              // Firebase → ESP32 servo
+              if (typeof pushDoorServoState === "function") {
+                try {
+                  await pushDoorServoState(doorId, wantOpen);
+                } catch (e) {
+                  console.error("pushDoorServoState error:", e);
+                }
+              }
+            };
+
+            if (delayMs > 0) {
+              console.log("⏱ Delay DOOR", delayMs, "ms");
+              setTimeout(() => {
+                runDoor().catch((e) =>
+                  console.error("runDoor(door) error:", e)
+                );
+              }, delayMs);
+            } else {
+              await runDoor();
+            }
+            return;
+          }
+
+          // 3️⃣ TÌM THIẾT BỊ (đèn / quạt / loa...)
+          const dev =
+            typeof findDeviceForVoice === "function"
+              ? findDeviceForVoice(cmd)
+              : null;
+
+          // Bật/tắt tất cả (multi_override)
+          if (dev && dev.multi_override === true && Array.isArray(dev.devices)) {
+            console.log("VOICE → MULTI OVERRIDE:", dev.devices);
+            for (const d of dev.devices) {
+              const fake = { ...cmd, device_id: d.id };
+              try {
+                await window.applyVoiceCommandToFirebase(fake);
+              } catch (e) {
+                console.error(
+                  "applyVoiceCommandToFirebase multi-override lỗi:",
+                  e
+                );
+              }
+            }
+            return;
+          }
+
+          if (!dev) {
+            console.warn("Không tìm thấy thiết bị phù hợp:", cmd);
+            return;
+          }
+
+          const card = document.getElementById(dev.id);
+
+          async function applyNow() {
+            if (cmd.action === "on") dev.state = true;
+            if (cmd.action === "off") dev.state = false;
+
+            // ===== LIGHT =====
+            if (dev.type === "light") {
+              // độ sáng
+              if (typeof cmd.brightness === "number") {
+                const cur = n(dev.brightness, dev.state ? 100 : 0);
+                let val = cmd.brightness;
+                if (cmd.brightness_op === "inc") val = cur + val;
+                if (cmd.brightness_op === "dec") val = cur - val;
+                dev.brightness = clamp(Math.round(val), 0, 100);
+                dev.state = dev.brightness > 0;
+              }
+
+              // màu tĩnh
+              if (cmd.color) {
+                const hx =
+                  typeof colorNameToHex === "function"
+                    ? colorNameToHex(cmd.color)
+                    : null;
+                if (hx) {
+                  dev.color = hx;
+                  dev.rainbow = false;
+                  dev.state = true;
+                }
+              }
+
+              // rainbow on/off
+              if (cmd.effect === "rainbow_on") {
+                dev.rainbow = true;
+                if (dev.brightness == null || dev.brightness === 0)
+                  dev.brightness = 100;
+                dev.state = true;
+              }
+              if (cmd.effect === "rainbow_off") {
+                dev.rainbow = false;
+              }
+
+              if (cmd.action === "on" &&
+                  (dev.brightness == null || dev.brightness === 0)) {
+                dev.brightness = 100;
+              }
+              if (cmd.action === "off") {
+                dev.brightness = 0;
+              }
+            }
+
+            // ===== FAN =====
+            if (dev.type === "fan") {
+              if (
+                typeof cmd.speed === "number" ||
+                typeof cmd.speed_op === "string"
+              ) {
+                const cur = n(dev.speed, 1);
+                let v = n(cmd.speed, 0);
+                if (cmd.speed_op === "inc") v = cur + Math.max(1, v || 1);
+                if (cmd.speed_op === "dec") v = cur - Math.max(1, v || 1);
+                dev.speed = clamp(Math.round(v), 0, 3);
+                dev.state = dev.speed > 0;
+              } else if (typeof cmd.brightness === "number") {
+                dev.speed = clamp(Math.round((cmd.brightness * 3) / 100), 0, 3);
+                dev.state = dev.speed > 0;
+              }
+
+              if (
+                cmd.action === "on" &&
+                (dev.speed == null || dev.speed === 0)
+              ) {
+                dev.speed = 1;
+                dev.state = true;
+              }
+              if (cmd.action === "off") {
+                dev.speed = 0;
+                dev.state = false;
+              }
+            }
+
+            // ===== SPEAKER =====
+            if (dev.type === "speaker") {
+              if (
+                typeof cmd.volume === "number" ||
+                typeof cmd.volume_op === "string"
+              ) {
+                const cur = n(dev.volume, dev.state ? 50 : 0);
+                let v = n(cmd.volume, 0);
+                if (cmd.volume_op === "inc") v = cur + Math.max(5, v || 5);
+                if (cmd.volume_op === "dec") v = cur - Math.max(5, v || 5);
+                dev.volume = clamp(Math.round(v), 0, 100);
+                dev.state = dev.volume > 0;
+              } else if (typeof cmd.brightness === "number") {
+                dev.volume = clamp(Math.round(cmd.brightness), 0, 100);
+                dev.state = dev.volume > 0;
+              }
+
+              if (
+                cmd.action === "on" &&
+                (dev.volume == null || dev.volume === 0)
+              ) {
+                dev.volume = 50;
+                dev.state = true;
+              }
+              if (cmd.action === "off") {
+                dev.volume = 0;
+                dev.state = false;
+              }
+            }
+
+            // ===== THERMOSTAT =====
+            if (dev.type === "thermostat" &&
+                typeof cmd.temperature === "number") {
+              dev.temperature = clamp(Math.round(cmd.temperature), 16, 32);
+            }
+
+            // UI
+            if (card && typeof updateCardVisual === "function")
+              updateCardVisual(card, dev);
+            if (card && typeof updateStateText === "function")
+              updateStateText(card, dev);
+
+            // Firebase
+            if (typeof window.saveAndRefresh === "function")
+              window.saveAndRefresh(false, false);
+            if (typeof window.saveDeviceDebounced === "function")
+              window.saveDeviceDebounced(dev);
+            if (typeof window.updateSingleDeviceToFirebase === "function")
+              await window.updateSingleDeviceToFirebase(dev);
+
+            console.log("✅ Voice→Device OK:", dev, cmd);
+          }
+
+          const delayMs = getDelayMs(cmd);
+          if (delayMs > 0) {
+            console.log("⏱ Delay voice command", delayMs, "ms");
+            setTimeout(() => {
+              applyNow().catch((e) =>
+                console.error("applyVoiceCommandToFirebase delayed error:", e)
+              );
+            }, delayMs);
+          } else {
+            await applyNow();
+          }
+        } catch (e) {
+          console.error("applyVoiceCommandToFirebase error:", e);
         }
-
-        async function applyNow() {
-          if (cmd.action === 'on')  dev.state = true;
-          if (cmd.action === 'off') dev.state = false;
-
-          if (dev.type === 'light') {
-            if (typeof cmd.brightness === 'number') {
-              const cur = n(dev.brightness, dev.state ? 100 : 0);
-              let val = cmd.brightness;
-              if (cmd.brightness_op === 'inc') val = cur + val;
-              if (cmd.brightness_op === 'dec') val = cur - val;
-              dev.brightness = clamp(Math.round(val), 0, 100);
-              dev.state = dev.brightness > 0;
-            }
-            if (cmd.color) {
-              const hx = (typeof colorNameToHex === 'function') ? colorNameToHex(cmd.color) : null;
-              if (hx) dev.color = hx;
-            }
-            if (cmd.action === 'on' && (dev.brightness == null || dev.brightness === 0)) dev.brightness = 100;
-            if (cmd.action === 'off') dev.brightness = 0;
-          }
-
-          if (dev.type === 'fan') {
-            if (typeof cmd.speed === 'number' || typeof cmd.speed_op === 'string') {
-              const cur = n(dev.speed, 1);
-              let v = n(cmd.speed, 0);
-              if (cmd.speed_op === 'inc') v = cur + Math.max(1,v||1);
-              if (cmd.speed_op === 'dec') v = cur - Math.max(1,v||1);
-              dev.speed = clamp(Math.round(v), 0, 3);
-              dev.state = dev.speed > 0;
-            } else if (typeof cmd.brightness === 'number') {
-              dev.speed = clamp(Math.round(cmd.brightness * 3 / 100), 0, 3);
-              dev.state = dev.speed > 0;
-            }
-            if (cmd.action === 'on'  && (dev.speed == null || dev.speed === 0)) {
-              dev.speed = 1; dev.state = true;
-            }
-            if (cmd.action === 'off') {
-              dev.speed = 0; dev.state = false;
-            }
-          }
-
-          if (dev.type === 'speaker') {
-            if (typeof cmd.volume === 'number' || typeof cmd.volume_op === 'string') {
-              const cur = n(dev.volume, dev.state ? 50 : 0);
-              let v = n(cmd.volume, 0);
-              if (cmd.volume_op === 'inc') v = cur + Math.max(5,v||5);
-              if (cmd.volume_op === 'dec') v = cur - Math.max(5,v||5);
-              dev.volume = clamp(Math.round(v), 0, 100);
-              dev.state = dev.volume > 0;
-            } else if (typeof cmd.brightness === 'number') {
-              dev.volume = clamp(Math.round(cmd.brightness), 0, 100);
-              dev.state = dev.volume > 0;
-            }
-            if (cmd.action === 'on'  && (dev.volume == null || dev.volume === 0)) {
-              dev.volume = 50; dev.state = true;
-            }
-            if (cmd.action === 'off') {
-              dev.volume = 0; dev.state = false;
-            }
-          }
-
-          if (dev.type === 'thermostat' && typeof cmd.temperature === 'number') {
-            dev.temperature = clamp(Math.round(cmd.temperature), 16, 32);
-          }
-
-          if (card && typeof updateCardVisual === 'function') updateCardVisual(card, dev);
-          if (card && typeof updateStateText  === 'function')  updateStateText(card, dev);
-
-          if (typeof window.saveAndRefresh === 'function') window.saveAndRefresh(false, false);
-          if (typeof window.saveDeviceDebounced === 'function') window.saveDeviceDebounced(dev);
-          if (typeof window.updateSingleDeviceToFirebase === 'function') {
-            await window.updateSingleDeviceToFirebase(dev);
-          }
-
-          console.log("✅ Voice→Device OK:", dev, cmd);
-        }
-
-        const delayMs = getDelayMs(cmd);
-        if (delayMs > 0) {
-          console.log("⏱ Delay voice command", delayMs, "ms");
-          setTimeout(() => {
-            applyNow().catch(e=>console.error("applyVoiceCommandToFirebase delayed error:",e));
-          }, delayMs);
-          return;
-        }
-
-        await applyNow();
-      } catch(e){
-        console.error("applyVoiceCommandToFirebase error:", e);
-      }
-    };
+      };
   </script>
 
+  <!-- ====== SCRIPT 6 (module): Firebase bridge ====== -->
   <script type="module">
-    import { loadDevicesFromFirebase, saveDevicesToFirebase, updateSingleDeviceToFirebase, deleteDeviceFromFirebase } from './firebase.js';
+    import {
+      loadDevicesFromFirebase,
+      saveDevicesToFirebase,
+      updateSingleDeviceToFirebase,
+      deleteDeviceFromFirebase,
+      clearCommandsInFirebase,
+      ensureDefaultScenes,
+      applySceneById
+    } from './firebase.js';
 
     window.deleteDeviceFromFirebase = deleteDeviceFromFirebase;
     window.saveDevicesToFirebase = saveDevicesToFirebase;
     window.updateSingleDeviceToFirebase = updateSingleDeviceToFirebase;
+    window.applySceneById = applySceneById;
+    clearCommandsInFirebase().catch(e => console.error(e));
+    ensureDefaultScenes().catch(e => console.error(e));
 
     const perDeviceTimers = {};
     function _saveDeviceDebounced_internal(dev) {
@@ -1582,6 +2236,10 @@
     window.saveDeviceDebounced = _saveDeviceDebounced_internal;
 
     loadDevicesFromFirebase((firebaseDevices) => {
+      if (window._preventFirebaseSync) {
+        console.log("⏳ Firebase sync blocked (anti-bounce)");
+        return;
+      }
       if (firebaseDevices && firebaseDevices.length > 0) {
         window.saved = firebaseDevices;
       } else {
@@ -1593,5 +2251,7 @@
 
   <div id="voicePill" class="voice-pill">Nhấn 🎤 để nói…</div>
   <button id="voiceBtn" class="voice-btn" title="Nhấn để bắt đầu/ kết thúc ghi âm">🎤</button>
+  <link rel="stylesheet" href="scenes.css">
+  <script src="/scenes.js"></script>
 </body>
 </html>

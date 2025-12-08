@@ -66,3 +66,15 @@ body {
   background: #00d4ff;
   color: #000;
 }
+
+/* ====== FIX CHỮ BỊ MỜ TRONG DROPDOWN BÀI HÁT ====== */
+select {
+  background-color: #ffffff;  /* nền tối giống thẻ */
+  color: #141b24;             /* chữ trắng dễ đọc */
+}
+
+/* Các dòng Bài 1, Bài 2, Bài 3 khi xổ ra */
+select option {
+  background-color: #141b24;  /* nền trắng */
+  color: #ffffff;             /* chữ đen rõ ràng */
+}
