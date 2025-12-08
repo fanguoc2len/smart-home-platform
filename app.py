@@ -27,8 +27,20 @@ except Exception:
 # ===============================
 SAMPLE_IMAGE = "namtran.jpg"
 SAMPLE_CROP = "namtran_crop.jpg"
-SIM_THRESHOLD = 0.67
+
+# Ngưỡng similarity cho nhận diện (0.67 hơi thấp, tăng lên cho an toàn hơn)
+SIM_THRESHOLD = 0.7
+
 INPUT_W, INPUT_H = 224, 224
+
+# Ngưỡng chất lượng khuôn mặt
+MIN_FACE_SIZE    = 80    # chiều rộng/ cao tối thiểu (pixels) mới xử lý
+BLUR_THRESHOLD   = 50.0  # độ nhòe tối đa (variance of Laplacian)
+
+# Multi-frame xác nhận (theo IP)
+REQ_CONSEC_FRAMES = 3     # cần ≥ 3 frame liên tiếp chuẩn mới cho pass
+RECOG_WINDOW_SEC  = 3.0   # trong vòng 3s, nếu đổi người coi như chuỗi mới
+
 
 # file to persist registered users
 REGISTERED_DB = "registered.json"
@@ -77,6 +89,24 @@ print("✅ MediaPipe ready")
 # Known faces storage (in-memory)
 # ===============================
 known_embeddings, known_names = [], []
+
+# State cho multi-frame recognition (key theo IP)
+# { ip: { "name": str | None, "count": int, "ts": float, "last_sim": float } }
+RECOG_STATE = {}
+
+def is_blurry(bgr_img, thresh: float = BLUR_THRESHOLD) -> bool:
+    """
+    Kiểm tra ảnh có quá mờ không (variance of Laplacian).
+    Mờ quá thì bỏ qua frame đó, tránh nhầm.
+    """
+    try:
+        gray = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2GRAY)
+        fm = cv2.Laplacian(gray, cv2.CV_64F).var()
+        return fm < thresh
+    except Exception:
+        # nếu lỗi gì đó thì cứ coi như không mờ để tránh drop lung tung
+        return False
+
 
 def load_sample(path, name):
     if not os.path.exists(path):
@@ -240,6 +270,7 @@ DEFAULT_FB_BASE = "https://do-an-2-91a3c-default-rtdb.asia-southeast1.firebaseda
 FIREBASE_COMMAND_URL = os.environ.get("FIREBASE_COMMAND_URL", f"{DEFAULT_FB_BASE}/commands.json")
 FIREBASE_COMMAND_URL_SANDBOX = os.environ.get("FIREBASE_COMMAND_URL_SANDBOX", f"{DEFAULT_FB_BASE}/commands_sandbox.json")
 FIREBASE_DEVICES_URL = os.environ.get("FIREBASE_DEVICES_URL", f"{DEFAULT_FB_BASE}/devices.json")
+FIREBASE_DOORS_BASE = os.environ.get("FIREBASE_DOORS_BASE", f"{DEFAULT_FB_BASE}/doors")
 
 # Lazy init Whisper
 WHISPER_MODEL = None
@@ -305,22 +336,32 @@ def _sim(a: str, b: str) -> float:
 
 # ===== NEW: load device catalog from Firebase =====
 _DEVICE_CACHE = {"data": None, "ts": 0.0}
-def _load_device_catalog(force: bool=False):
+def _load_device_catalog(force: bool = False):
+    """Đọc danh sách devices từ Firebase và build catalog dùng cho voice."""
     global _DEVICE_CACHE
-    ttl = 20
-    if (not force) and _DEVICE_CACHE["data"] and (time.time()-_DEVICE_CACHE["ts"] < ttl):
+    ttl = 20  # giây cache
+
+    if (not force) and _DEVICE_CACHE["data"] and (time.time() - _DEVICE_CACHE["ts"] < ttl):
         return _DEVICE_CACHE["data"]
+
     catalog = []
     try:
         r = requests.get(FIREBASE_DEVICES_URL, timeout=4)
         data = r.json() or {}
     except Exception:
         data = {}
-    for key, dev in (data.items() if isinstance(data, dict) else []):
-        # 🔧 ưu tiên đọc metadata trước, fallback về top-level như cũ
+
+    if isinstance(data, dict):
+        items = data.items()
+    else:
+        items = []
+
+    for key, dev in items:
+        dev = dev or {}
         meta = dev.get("metadata", {}) or {}
-        name  = str(dev.get("name") or meta.get("name") or key)
-        area  = str(
+
+        name = str(dev.get("name") or meta.get("name") or key)
+        area = str(
             dev.get("area")
             or dev.get("room")
             or meta.get("area")
@@ -334,28 +375,53 @@ def _load_device_catalog(force: bool=False):
             or "Light"
         )
         brand = str(dev.get("brand") or meta.get("brand") or "")
-        base_syn = set(filter(None, [
-            _fold_text(name),
-            _fold_text(dtype),
-            _fold_text(brand),
-            _fold_text(name.replace(" ", "")),
-            _fold_text(f"{dtype} {area}"),
-        ]))
+
+        base_syn = set(
+            filter(
+                None,
+                [
+                    _fold_text(name),
+                    _fold_text(dtype),
+                    _fold_text(brand),
+                    _fold_text(name.replace(" ", "")),
+                    _fold_text(f"{dtype} {area}"),
+                ],
+            )
+        )
+
         dtypef = _fold_text(dtype)
-        if any(k in dtypef for k in ["light","lamp","den"]):
-            base_syn.update({"den","bong den","light","lamp"})
-        if any(k in dtypef for k in ["neopixel","neo pixel","neo"]):
-            base_syn.update({"neopixel","neo pixel","neo"})
-        if any(k in dtypef for k in ["philips","phillips","hue"]):
-            base_syn.update({"philips","phills","hue","phillips"})
-        catalog.append({
-            "key": key,
-            "id": dev.get("id") or meta.get("id") or key,
-            "name": name,
-            "area": area,
-            "device": dtype,
-            "syn": list(base_syn)
-        })
+
+        # Đèn
+        if any(k in dtypef for k in ["light", "lamp", "den"]):
+            base_syn.update({"den", "bong den", "light", "lamp"})
+
+        # NeoPixel
+        if any(k in dtypef for k in ["neopixel", "neo pixel", "neo"]):
+            base_syn.update({"neopixel", "neo pixel", "neo"})
+
+        # Philips Hue
+        if any(k in dtypef for k in ["philips", "phillips", "hue"]):
+            base_syn.update({"philips", "phills", "hue", "phillips"})
+
+        # === NEW: quạt / fan ===
+        if "fan" in dtypef or "quat" in dtypef:
+            base_syn.update({"quat", "quat tran", "fan"})
+
+        # === NEW: loa / speaker ===
+        if "speaker" in dtypef or "loa" in dtypef or "audio" in dtypef:
+            base_syn.update({"loa", "loa nghe nhac", "speaker", "am thanh"})
+
+        catalog.append(
+            {
+                "key": key,
+                "id": dev.get("id") or meta.get("id") or key,
+                "name": name,
+                "area": area,
+                "device": dtype,
+                "syn": list(base_syn),
+            }
+        )
+
     _DEVICE_CACHE = {"data": catalog, "ts": time.time()}
     return catalog
 
@@ -442,71 +508,163 @@ def _parse_schedule_vi(text: str):
 
     return None, None
 
-# ===== Parser (improved) =====
+# ===============================
+# AREA MEMORY (ghi nhớ khu vực cuối)
+# ===============================
+_LAST_AREA = None
+
+def _remember_area(area: str):
+    """Lưu khu vực cuối cùng mà giọng nói vừa nhắc tới."""
+    global _LAST_AREA
+    if area:
+        _LAST_AREA = area
+
+def _last_area():
+    """Lấy khu vực đã được nhắc gần nhất (nếu có)."""
+    return _LAST_AREA
+
+# ===== Parser =====
 def _parse_command_vi(text: str) -> dict:
+    """
+    Parse câu tiếng Việt thành command:
+    - action: on/off/set
+    - brightness / brightness_delta (mức % chung)
+    - color (cho đèn)
+    - speed/speed_op (cho quạt)
+    - volume/volume_op (cho loa)
+    """
     s_raw = (text or "").strip()
     s = s_raw.lower()
     sf = _fold_text(s_raw)
+    
 
-    # Action
+    # ----- Action -----
     action = None
-    if re.search(r'\b(bật|mo|bat|turn on|on)\b', sf):
+    if re.search(r"\b(bật|bat|mo|turn on|on)\b", sf):
         action = "on"
-    elif re.search(r'\b(tắt|tat|dong|turn off|off)\b', sf):
+    elif re.search(r"\b(tắt|tat|dong|turn off|off)\b", sf):
         action = "off"
 
-    # Brightness absolute / delta
+    # ----- Brightness (mức %) dùng chung -----
     brightness = None
     brightness_delta = None
-    m_abs = re.search(r'(\d+)\s*%?', s)
+
+    m_abs = re.search(r"(\d+)\s*%?", s)
     if m_abs:
         try:
             brightness = max(0, min(100, int(m_abs.group(1))))
-        except:
-            pass
-    if ("tăng" in s) or ("giam" in sf) or ("giảm" in s):
+        except Exception:
+            brightness = None
+
+    if ("tăng" in s) or ("giảm" in s) or ("giam" in sf):
         sign = 1 if "tăng" in s else -1
         if brightness is not None:
+            # ví dụ: "tăng 20%" -> delta = +20
             brightness_delta = sign * brightness
             brightness = None
         else:
-            brightness_delta = sign * 10  # default step
+            # ví dụ: "tăng đèn phòng khách" -> mặc định +/-10
+            brightness_delta = sign * 10
 
-    # Color
+    # ----- Color cho đèn -----
     COLORS = {
-        "đỏ":"red","xanh dương":"blue","xanh biển":"blue","xanh nước biển":"blue",
-        "xanh lá":"green","lục":"green","lá":"green","trắng":"white",
-        "vàng":"yellow","tím":"purple","hồng":"pink","cam":"orange"
+        "do": "red",
+        "do tuoi": "red",
+        "xanh la": "green",
+        "la": "green",
+        "xanh duong": "blue",
+        "xanh lam": "blue",
+        "xanh nuoc bien": "blue",
+        "vang": "yellow",
+        "trang": "white",
+        "trang am": "warm white",
+        "am": "warm white",
+        "trang lanh": "cool white",
+        "lanh": "cool white",
+        "cam": "orange",
+        "tim": "purple",
+        "hong": "pink",
+        "xanh ngoc": "cyan",
+        "ngoc": "cyan",
+        "ho phach": "amber",
+        "nau": "brown",
+        "den": "black",
     }
-    color = None
-    for vi,en in COLORS.items():
-        if vi in s:
-            color = en; break
 
-    # Area / Device inference
+    color = None
+    for k, v in COLORS.items():
+        if k in sf:
+            color = v
+            break
+
+    # ----- Area hint + chọn device -----
     area_hint = _infer_area_from_text(sf) or _last_area()
     devmatch = _best_device_match(s_raw, area_hint)
 
     if devmatch:
         device = devmatch["device"]
-        area   = devmatch["area"]
-        device_id = devmatch.get("id") or f"{device}_{area}"
+        area = devmatch["area"]
+        device_id = devmatch.get("id") or devmatch.get("key") or f"{device}_{area}"
     else:
         device = "Light"
-        area   = area_hint or "Default"
+        area = area_hint or "Default"
         device_id = f"{device}_{area}"
 
-    # Default action
+    # nhớ khu vực cuối cùng
+    _remember_area(area)
+
+    # nếu chỉnh brightness/color mà chưa có action thì xem như "set"
     if action is None and (brightness is not None or color is not None or brightness_delta is not None):
         action = "set"
 
+    # ----- NEW: map mức → speed/volume cho quạt & loa -----
+    dev_fold = _fold_text(str(device))
+    is_fan = ("fan" in dev_fold) or ("quat" in sf)
+    is_speaker = ("speaker" in dev_fold) or ("loa" in sf) or ("am thanh" in sf)
+
+    speed = None
+    speed_op = None
+    volume = None
+    volume_op = None
+
+    if is_fan:
+        # tuyệt đối: "quạt 50%" → level 1–3
+        if brightness is not None:
+            if brightness <= 0:
+                speed = 0
+            else:
+                speed = max(1, min(3, round(brightness * 3 / 100)))
+        # tương đối: "tăng/giảm quạt"
+        if brightness_delta is not None:
+            speed_op = "inc" if brightness_delta > 0 else "dec"
+            step = max(1, round(abs(brightness_delta) * 3 / 100))
+            speed = step
+
+    if is_speaker:
+        # tuyệt đối: "loa Bose 30%" → 30
+        if brightness is not None:
+            volume = brightness
+        # tương đối: "tăng/giảm âm lượng loa"
+        if brightness_delta is not None:
+            volume_op = "inc" if brightness_delta > 0 else "dec"
+            volume = abs(brightness_delta) or 5  # mặc định bước 5
+
     cmd = {
-        "device_id": device_id, "device": device, "area": area,
-        "action": action, "brightness": brightness, "color": color,
+        "device_id": device_id,
+        "device": device,
+        "area": area,
+        "action": action,
+        "brightness": brightness,
+        "color": color,
         "brightness_delta": brightness_delta,
-        "raw_text": s_raw
+        "speed": speed,
+        "speed_op": speed_op,
+        "volume": volume,
+        "volume_op": volume_op,
+        "raw_text": s_raw,
     }
     return cmd
+
 
 # ===== Việt Nam delay parser =====
 def _extract_delay_vi(text: str):
@@ -590,14 +748,129 @@ CORS(app)
 def index():
     return render_template('index.html')
 
+@app.route('/execute_scene', methods=['POST'])
+def execute_scene():
+    """
+    Áp dụng scene:
+    - Ưu tiên dùng scene.actions nếu có (kiểu cũ: device + desired)
+    - Nếu không có actions thì dùng scene.rules (kiểu mới: match type/section)
+    """
+    data = request.get_json(silent=True) or {}
+    scene = data.get("scene")
+
+    # Khi clearScene() gửi scene = null -> chỉ trả về ok, không làm gì
+    if not scene:
+        return jsonify({"status": "cleared"})
+
+    import requests, time
+
+    # ----- 1. Load config scene -----
+    SCENE_URL = f"{DEFAULT_FB_BASE}/scenes/{scene}.json"
+    resp_scene = requests.get(SCENE_URL)
+    if resp_scene.status_code != 200:
+        return jsonify({"error": "Scene not found"}), 404
+
+    scene_data = resp_scene.json() or {}
+    if not scene_data:
+        return jsonify({"error": "Scene not found"}), 404
+
+    actions = scene_data.get("actions")
+    rules   = scene_data.get("rules")
+
+    patches = []   # danh sách (device_id, desired)
+
+    # ----- 2A. Kiểu cũ: actions (device + desired) -----
+    if actions:
+        for act in actions or []:
+            dev_id = act.get("device")
+            desired = act.get("desired") or {}
+            if not dev_id or not isinstance(desired, dict):
+                continue
+            patches.append((dev_id, desired))
+
+    # ----- 2B. Kiểu mới: rules (match type/section) -----
+    elif rules:
+        DEVICES_URL = f"{DEFAULT_FB_BASE}/devices.json"
+        resp_dev = requests.get(DEVICES_URL)
+        if resp_dev.status_code != 200:
+            return jsonify({"error": "Failed to load devices"}), 500
+
+        devices = resp_dev.json() or {}
+
+        def norm(v):
+            return (v or "").strip().lower()
+
+        for dev_id, node in devices.items():
+            meta   = node.get("metadata", {})
+            legacy = node  # fallback
+            dev_type = norm(meta.get("type") or legacy.get("type"))
+            section  = norm(meta.get("section") or legacy.get("section"))
+
+            for rule in rules:
+                match = rule.get("match") or {}
+                m_type    = norm(match.get("type"))
+                m_section = norm(match.get("section"))
+
+                # match type
+                if m_type and dev_type != m_type:
+                    continue
+                # match section (nếu có)
+                if m_section and section != m_section:
+                    continue
+
+                desired = dict(rule.get("desired") or {})
+                if not desired:
+                    continue
+
+                # thêm metadata cho log
+                desired.setdefault("ts", int(time.time() * 1000))
+                desired.setdefault("updated_by", f"scene:{scene}")
+
+                patches.append((dev_id, desired))
+                # KHÔNG break: để night có thể áp dụng 2 rule
+                # (vd: tắt hết light rồi bật lại light ở Entry)
+
+    else:
+        return jsonify({"error": "Scene has neither actions nor rules"}), 400
+
+    # ----- 3. Gửi PATCH lên từng thiết bị -----
+    results = {}
+    for dev_id, desired in patches:
+        # chuyển state(bool) -> power(on/off) nếu có
+        if "state" in desired:
+            state_val = desired.pop("state")
+            if isinstance(state_val, bool):
+                desired["power"] = "on" if state_val else "off"
+
+        try:
+            r = requests.patch(
+                f"{DEFAULT_FB_BASE}/devices/{dev_id}/desired.json",
+                json=desired,
+                timeout=5
+            )
+            results[dev_id] = r.status_code
+        except Exception as e:
+            results[dev_id] = f"error: {e}"
+
+    return jsonify({"status": "ok", "scene": scene, "patched": results})
+
 @app.route('/upload', methods=['POST'])
 def upload():
+    """
+    Nhận 1 frame (ảnh) từ client, nhận diện khuôn mặt.
+
+    Nâng cấp:
+      - Bỏ qua mặt quá nhỏ / quá mờ.
+      - Dùng SIM_THRESHOLD = 0.70 (chặt hơn bản cũ 0.67).
+      - Yêu cầu N frame liên tiếp (theo IP) đều đạt ngưỡng mới cho pass.
+    """
     try:
         data = request.get_json()
         img_base64 = data.get('image')
         if not img_base64:
             return jsonify({'error': 'Không có ảnh'}), 400
 
+        # decode base64 -> BGR frame
         img_bytes = base64.b64decode(img_base64.split(',')[1])
         npimg = np.frombuffer(img_bytes, np.uint8)
         frame = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
@@ -608,26 +881,94 @@ def upload():
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = face_detection.process(rgb)
 
-        name, best_sim = "Unknown", -1.0
+        raw_name, best_sim = "Unknown", -1.0
+
         if results.detections:
             for det in results.detections:
                 bbox = det.location_data.relative_bounding_box
-                x, y = int(bbox.xmin*w), int(bbox.ymin*h)
-                bw, bh = int(bbox.width*w), int(bbox.height*h)
+                x, y = int(bbox.xmin * w), int(bbox.ymin * h)
+                bw, bh = int(bbox.width * w), int(bbox.height * h)
                 x, y = max(0, x), max(0, y)
-                x2, y2 = min(w, x+bw), min(h, y+bh)
+                x2, y2 = min(w, x + bw), min(h, y + bh)
+
+                # Bỏ qua mặt quá nhỏ
+                if bw < MIN_FACE_SIZE or bh < MIN_FACE_SIZE:
+                    continue
+
                 face_crop = frame[y:y2, x:x2]
                 if face_crop is None or face_crop.size == 0:
                     continue
+
+                # Bỏ qua frame quá mờ
+                if is_blurry(face_crop):
+                    continue
+
                 emb = get_embedding_from_bgr(face_crop)
                 for k_emb, k_name in zip(known_embeddings, known_names):
                     sim = float(cosine_similarity([emb], [k_emb])[0][0])
                     if sim > best_sim:
                         best_sim = sim
-                        name = k_name if sim >= SIM_THRESHOLD else "Unknown"
+                        raw_name = k_name if sim >= SIM_THRESHOLD else "Unknown"
 
-        print(f"📸 Kết quả: {name} ({best_sim:.2f})")
-        return jsonify({"recognized": name, "similarity": best_sim, "name": name})
+        # ===== Multi-frame confirm theo IP =====
+        client_ip = request.remote_addr or "unknown"
+        now = time.time()
+        st = RECOG_STATE.get(client_ip, {
+            "name": None,
+            "count": 0,
+            "ts": 0.0,
+            "last_sim": -1.0
+        })
+
+        final_name = "Unknown"
+
+        if raw_name != "Unknown" and best_sim >= SIM_THRESHOLD:
+            # nếu còn trong window & cùng 1 tên -> tăng count
+            if st["name"] == raw_name and (now - st["ts"]) <= RECOG_WINDOW_SEC:
+                st["count"] += 1
+            else:
+                # bắt đầu chuỗi mới
+                st = {
+                    "name": raw_name,
+                    "count": 1,
+                    "ts": now,
+                    "last_sim": best_sim
+                }
+
+            st["ts"] = now
+            st["last_sim"] = best_sim
+            RECOG_STATE[client_ip] = st
+
+            if st["count"] >= REQ_CONSEC_FRAMES:
+                final_name = raw_name
+            else:
+                final_name = "Unknown"
+        else:
+            # không nhận diện được / similarity thấp -> reset
+            RECOG_STATE[client_ip] = {
+                "name": None,
+                "count": 0,
+                "ts": now,
+                "last_sim": best_sim
+            }
+            final_name = "Unknown"
+
+        streak = RECOG_STATE.get(client_ip, {}).get("count", 0)
+        print(
+            f"📸 Kết quả: raw={raw_name}, final={final_name}, "
+            f"sim={best_sim:.2f}, streak={streak}"
+        )
+
+        # JSON giữ format cũ để index.html không phải sửa
+        return jsonify({
+            "recognized": final_name,
+            "name": final_name,
+            "similarity": best_sim,
+            "raw_name": raw_name,
+            "threshold": SIM_THRESHOLD,
+            "streak": streak,
+            "required_streak": REQ_CONSEC_FRAMES
+        })
     except Exception as e:
         print("⚠️ Lỗi xử lý:", e)
         return jsonify({'error': str(e)}), 500
@@ -666,6 +1007,40 @@ def register():
     except Exception as e:
         print("⚠️ Lỗi register:", e)
         return jsonify({'status': 'error', 'message': str(e)}), 500
+
+@app.route('/voice-door', methods=['POST'])
+def voice_door():
+    data = request.json
+
+    device = data.get("device", "").lower()
+    action = data.get("action", "").lower()
+
+    # map tên cửa
+    if "front" in device or "trước" in device or "main" in device:
+        door_id = "frontDoor"
+    elif "side" in device or "sau" in device or "hông" in device or "phụ" in device:
+        door_id = "sideDoor"
+    else:
+        return jsonify({"error": "Unknown door"}), 400
+
+    # map action nghĩa rộng
+    if action in ["open", "mở"]:
+        state = "open"
+    elif action in ["close", "đóng", "shut"]:
+        state = "closed"
+    elif action in ["lock", "khóa"]:
+        state = "closed"
+    elif action in ["unlock", "mở khóa"]:
+        state = "open"
+    else:
+        return jsonify({"error": "Unknown action"}), 400
+
+    # gửi lên firebase
+    ref = f"{FIREBASE_DOORS_BASE}/{door_id}/state.json"
+    body = f"\"{state}\""
+    r = requests.patch(ref, data=body)
+
+    return jsonify({"status": "ok", "door": door_id, "state": state})
 
 @app.route('/voice', methods=['POST'])
 def voice():
@@ -990,34 +1365,54 @@ def voice():
         print("💥 Voice pipeline error:", e)
         return jsonify({"status": "error", "message": str(e)}), 500
 
-# ====== Monkey-patch: also write desired/* for voice commands (HomeKit-style) ======
-VOICE_WRITE_DESIRED = os.environ.get("VOICE_WRITE_DESIRED","0") == "1"
-
-def _push_desired_from_voice(cmd: dict) -> dict:
-    try:
-        dev_id = cmd.get("device_id")
-        if not dev_id:
-            return {"status":"skip","reason":"missing device_id"}
-        patch = {}
-        if cmd.get("action") in ("on","off"):
-            patch["power"] = cmd["action"]
-        if cmd.get("brightness") is not None:
-            try: patch["brightness"] = int(cmd["brightness"])
-            except Exception: pass
-        if cmd.get("color"): patch["color"] = cmd["color"]
-        patch["source"] = "voice"; patch["ts"] = int(time.time()*1000)
-        url = f"{DEFAULT_FB_BASE}/devices/{dev_id}/desired.json"
-        r = requests.patch(url, json=patch, timeout=4)
-        return {"target":"firebase","status":"ok","code":r.status_code,"payload":patch}
-    except Exception as e:
-        return {"target":"firebase","status":"error","message":str(e)}
-
 
 try:
     __orig_push_command = _push_command
 except NameError:
     __orig_push_command = None
 
+VOICE_WRITE_DESIRED = os.environ.get("VOICE_WRITE_DESIRED","0") == "1"
+
+def _push_desired_from_voice(cmd: dict) -> dict:
+    try:
+        dev_id = cmd.get("device_id")
+        if not dev_id:
+            return {"status": "skip", "reason": "missing device_id"}
+
+        patch = {}
+        if cmd.get("action") in ("on", "off"):
+            patch["power"] = cmd["action"]
+
+        if cmd.get("brightness") is not None:
+            try:
+                patch["brightness"] = int(cmd["brightness"])
+            except Exception:
+                pass
+
+        if cmd.get("color"):
+            patch["color"] = cmd["color"]
+
+        # NEW: quạt / loa
+        if cmd.get("speed") is not None:
+            try:
+                patch["speed"] = int(cmd["speed"])
+            except Exception:
+                pass
+
+        if cmd.get("volume") is not None:
+            try:
+                patch["volume"] = int(cmd["volume"])
+            except Exception:
+                pass
+
+        patch["source"] = "voice"
+        patch["ts"] = int(time.time() * 1000)
+
+        url = f"{DEFAULT_FB_BASE}/devices/{dev_id}/desired.json"
+        r = requests.patch(url, json=patch, timeout=4)
+        return {"target": "firebase", "status": "ok", "code": r.status_code, "payload": patch}
+    except Exception as e:
+        return {"target": "firebase", "status": "error", "message": str(e)}
 
 if __orig_push_command is not None:
     def _push_command(cmd: dict, sandbox=False):

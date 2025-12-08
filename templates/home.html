@@ -5,35 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Smart Home</title>
   <!-- BẮT BUỘC FACE-ID TRƯỚC KHI VÀO HOME + HẾT 1 PHÚT PHẢI QUÉT LẠI -->
-
- <!--<script>
-    (function() {
+  <script>
+    (function () {
       try {
-        // đã unlock chưa?
-        const ok  = localStorage.getItem('face_auth_ok') === '1';
-        // thời điểm quét mặt gần nhất
-        const t   = parseInt(localStorage.getItem('face_auth_time') || '0', 10);
-
+        const ok = localStorage.getItem("face_auth_ok") === "1";
+        const t = parseInt(localStorage.getItem("face_auth_time") || "0", 10);
         const now = Date.now();
         const MAX_AGE = 60 * 1000; // 1 phút
 
-        // nếu chưa unlock, hoặc token quá hạn 1 phút → đá về trang nhận diện
-        if (!ok || !t || (now - t) > MAX_AGE) {
-          localStorage.removeItem('face_auth_ok');
-          localStorage.removeItem('face_auth_time');
-          window.location.href = 'index.html';
+        if (!ok || !t || now - t > MAX_AGE) {
+          localStorage.removeItem("face_auth_ok");
+          localStorage.removeItem("face_auth_time");
+          window.location.href = "index.html";
         }
       } catch (e) {
-        // nếu có lỗi (browser chặn localStorage, v.v.) → cũng bắt về quét mặt lại
-        window.location.href = 'index.html';
+        window.location.href = "index.html";
       }
     })();
   </script>
--->
+
   <style>
-    /* --- (Giữ nguyên style gốc của bạn, thêm vài class cho add-card & modal) --- */
     body {
-      font-family: 'Segoe UI', sans-serif;
+      font-family: "Segoe UI", sans-serif;
       background: linear-gradient(145deg, #1b2735, #090a0f);
       color: #fff;
       margin: 0;
@@ -42,113 +35,6 @@
       display: flex;
       flex-direction: column;
     }
-
-        /* ==== SCENES BAR ==== */
-    .scenes-section {
-      margin-top: 0;
-      margin-bottom: 10px;
-    }
-
-    #scenesBar {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 4px;
-    }
-
-    .scene-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(0, 255, 255, 0.25);
-      background: rgba(0, 0, 0, 0.35);
-      color: #e8ffff;
-      font-size: 13px;
-      cursor: pointer;
-      outline: none;
-      user-select: none;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
-      transition:
-        background 0.25s ease,
-        box-shadow 0.25s ease,
-        transform 0.18s ease,
-        border-color 0.25s ease;
-    }
-
-    .scene-chip:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 5px 16px rgba(0, 255, 255, 0.25);
-      background: rgba(0, 0, 0, 0.55);
-    }
-
-    .scene-chip.active {
-      background: linear-gradient(135deg, rgba(0, 255, 204, 0.35), rgba(0, 191, 255, 0.35));
-      border-color: rgba(0, 255, 255, 0.8);
-      box-shadow: 0 0 18px rgba(0, 255, 255, 0.55);
-      transform: translateY(-1px) scale(1.01);
-    }
-
-    .scene-chip-emoji {
-      font-size: 16px;
-    }
-
-    .scene-chip-label {
-      font-weight: 600;
-      letter-spacing: 0.2px;
-    }
-
-    /* ==== THEME THEO SCENE (thay màu background + card) ==== */
-
-    body.scene-default {
-      background: linear-gradient(145deg, #1b2735, #090a0f);
-    }
-
-    body.scene-good-night {
-      background: radial-gradient(circle at 10% 0%, #1a0939 0, #050814 50%, #020308 100%);
-    }
-
-    body.scene-movie {
-      background: radial-gradient(circle at 0% 0%, #1b213a 0, #050b18 45%, #080112 100%);
-    }
-
-    body.scene-party {
-      background:
-        radial-gradient(circle at 10% 0%, #ff00b3 0, transparent 55%),
-        radial-gradient(circle at 100% 100%, #00ffe1 0, transparent 55%),
-        radial-gradient(circle at 0% 100%, #ffd600 0, transparent 55%),
-        #050009;
-    }
-
-    /* card khi scene đặc biệt (override nhẹ) */
-    body.scene-good-night .card.on {
-      box-shadow: 0 0 30px rgba(255, 204, 128, 0.7);
-      border-color: rgba(255, 204, 128, 0.9);
-      background: linear-gradient(140deg, rgba(255, 183, 77, 0.15), rgba(255, 255, 255, 0.03));
-    }
-
-    body.scene-movie .card.on {
-      box-shadow: 0 0 30px rgba(138, 180, 255, 0.7);
-      border-color: rgba(138, 180, 255, 0.9);
-      background: linear-gradient(140deg, rgba(138, 180, 255, 0.18), rgba(255, 255, 255, 0.04));
-    }
-
-    body.scene-party .card.on {
-      box-shadow: 0 0 35px rgba(255, 64, 129, 0.9);
-      border-color: rgba(255, 128, 171, 0.95);
-      background: linear-gradient(135deg, rgba(255, 64, 129, 0.25), rgba(0, 229, 255, 0.18));
-    }
-
-    /* làm animation cho card chung mượt hơn */
-    .card {
-      transition:
-        transform .18s ease,
-        box-shadow .18s ease,
-        background .22s ease,
-        border-color .22s ease;
-    }
-
 
     .navbar {
       display: flex;
@@ -162,7 +48,7 @@
       top: 0;
       left: 0;
       right: 0;
-      z-index: 5000; /* luôn nổi trên card */
+      z-index: 5000;
     }
 
     body {
@@ -176,7 +62,9 @@
       transition: color 0.3s;
     }
 
-    .navbar a:hover { color: #00ffcc; }
+    .navbar a:hover {
+      color: #00ffcc;
+    }
 
     header {
       padding: 18px 22px;
@@ -202,8 +90,14 @@
       font-size: 13px;
     }
 
-    .section { margin: 0 22px 22px 22px; }
-    .section h2 { color: #00ffcc; margin-bottom: 10px; font-size: 16px; }
+    .section {
+      margin: 0 22px 22px 22px;
+    }
+    .section h2 {
+      color: #00ffcc;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
 
     .grid {
       display: grid;
@@ -219,19 +113,36 @@
       box-shadow: 0 0 12px rgba(0, 212, 255, 0.06);
       border: 1px solid rgba(0, 212, 255, 0.08);
       cursor: pointer;
-      transition: transform .18s, box-shadow .18s, background .18s;
+      transition: transform 0.18s, box-shadow 0.18s, background 0.18s;
       position: relative;
       overflow: visible;
       user-select: none;
     }
 
-    .card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,212,255,0.12); }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0, 212, 255, 0.12);
+    }
 
-    .device strong { font-size: 16px; color: #fff; display: block; text-transform: capitalize; }
-    .device span { color: #bcd; font-size: 13px; display:block; margin-top:8px; }
+    .device strong {
+      font-size: 16px;
+      color: #fff;
+      display: block;
+      text-transform: capitalize;
+    }
+    .device span {
+      color: #bcd;
+      font-size: 13px;
+      display: block;
+      margin-top: 8px;
+    }
 
     .on {
-      background: linear-gradient(145deg, rgba(0, 255, 200, 0.25), rgba(0, 255, 255, 0.25));
+      background: linear-gradient(
+        145deg,
+        rgba(0, 255, 200, 0.25),
+        rgba(0, 255, 255, 0.25)
+      );
       box-shadow: 0 0 18px rgba(0, 255, 255, 0.6);
       border: 1px solid rgba(0, 255, 255, 0.8);
       transition: all 0.25s ease-in-out;
@@ -243,67 +154,106 @@
       font-weight: 600;
     }
 
-    /* add-card (viền chấm) */
     .add-card {
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       color: #00d4ff;
-      border: 2px dashed rgba(0,212,255,0.25);
+      border: 2px dashed rgba(0, 212, 255, 0.25);
       background: transparent;
       height: 88px;
-      gap:6px;
+      gap: 6px;
       cursor: pointer;
     }
-    .add-card small { color: rgba(0,212,255,0.75); }
+    .add-card small {
+      color: rgba(0, 212, 255, 0.75);
+    }
 
-    /* modal */
     .modal {
-      display:none;
-      position:fixed;
-      inset:0;
-      background: rgba(0,0,0,0.5);
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
       backdrop-filter: blur(6px);
       z-index: 2000;
-      justify-content:center;
-      align-items:center;
+      justify-content: center;
+      align-items: center;
     }
     .modal .card-modal {
       width: 320px;
-      background: rgba(12,20,28,0.95);
+      background: rgba(12, 20, 28, 0.95);
       border-radius: 14px;
       padding: 18px;
-      border: 1px solid rgba(0,212,255,0.12);
+      border: 1px solid rgba(0, 212, 255, 0.12);
       color: #fff;
     }
-    .modal label { display:block; margin-top:8px; color:#9de8ff; font-size:13px; }
-    .modal input, .modal select { width:100%; padding:8px; margin-top:6px; border-radius:8px; border:none; background: rgba(255,255,255,0.03); color:#cfe; outline:none; }
+    .modal label {
+      display: block;
+      margin-top: 8px;
+      color: #9de8ff;
+      font-size: 13px;
+    }
+    .modal input,
+    .modal select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 6px;
+      border-radius: 8px;
+      border: none;
+      background: rgba(255, 255, 255, 0.03);
+      color: #cfe;
+      outline: none;
+    }
 
-    .modal select option { color: #000; background: #fff; }
-    .modal .actions { display:flex; gap:8px; margin-top:12px; }
-    .modal .actions button { flex:1; padding:8px; border-radius:8px; border:none; cursor:pointer; font-weight:600; }
-    .btn-cancel { background:#2b3238; color:#cfe; }
-    .btn-add { background:#00d4ff; color:#000; }
+    .modal select option {
+      color: #000;
+      background: #fff;
+    }
+    .modal .actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .modal .actions button {
+      flex: 1;
+      padding: 8px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-cancel {
+      background: #2b3238;
+      color: #cfe;
+    }
+    .btn-add {
+      background: #00d4ff;
+      color: #000;
+    }
 
-    /* expanded control inside card */
     .controls {
       position: absolute;
       left: 8px;
       right: 8px;
       bottom: 8px;
-      background: rgba(0,0,0,0.5);
-      padding:8px;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 8px;
       border-radius: 10px;
       display: none;
-      gap:8px;
-      align-items:center;
+      gap: 8px;
+      align-items: center;
     }
 
     .device-card.on {
-      background: linear-gradient(145deg, rgba(0,255,200,0.18), rgba(0,255,255,0.25));
-      box-shadow: 0 0 25px rgba(0,255,255,0.6), inset 0 0 10px rgba(0,255,255,0.3);
-      border-color: rgba(0,255,255,0.7);
+      background: linear-gradient(
+        145deg,
+        rgba(0, 255, 200, 0.18),
+        rgba(0, 255, 255, 0.25)
+      );
+      box-shadow: 0 0 25px rgba(0, 255, 255, 0.6),
+        inset 0 0 10px rgba(0, 255, 255, 0.3);
+      border-color: rgba(0, 255, 255, 0.7);
       transition: all 0.3s ease;
     }
 
@@ -313,7 +263,98 @@
       text-shadow: 0 0 6px #00ffe0;
     }
 
-    /* overlay chỉnh sáng/màu khi long-press */
+    /* ==== PARTY RAINBOW ==== */
+    body.scene-party .card.rainbow-mode {
+      position: relative;
+      overflow: hidden;
+      border-radius: 16px;
+      background: transparent;
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.06),
+        0 0 18px rgba(0, 255, 255, 0.7),
+        0 0 32px rgba(0, 255, 127, 0.55);
+      isolation: isolate;
+      animation: rainbowShadow 6s linear infinite;
+    }
+
+    body.scene-party .card.rainbow-mode::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 300%;
+      height: 300%;
+      transform: translate(-50%, -50%) rotate(0deg);
+      border-radius: 50%;
+      background: conic-gradient(
+        #ff6cab,
+        #ffcf4a,
+        #20e3b2,
+        #00cfff,
+        #a855ff,
+        #ff6cab
+      );
+      z-index: -1;
+      pointer-events: none;
+      animation: rainbowSpinCircle 8s linear infinite;
+    }
+
+    body:not(.scene-party) .card.rainbow-mode::before {
+      display: none;
+    }
+
+    @keyframes rainbowSpinCircle {
+      from {
+        transform: translate(-50%, -50%) rotate(0deg);
+      }
+      to {
+        transform: translate(-50%, -50%) rotate(360deg);
+      }
+    }
+
+    @keyframes rainbowShadow {
+      0% {
+        box-shadow:
+          0 0 0 1px rgba(255, 255, 255, 0.06),
+          0 0 20px rgba(0, 255, 255, 0.8),
+          0 0 40px rgba(0, 255, 127, 0.55);
+      }
+      25% {
+        box-shadow:
+          0 0 0 1px rgba(255, 255, 255, 0.06),
+          0 0 20px rgba(0, 255, 127, 0.8),
+          0 0 40px rgba(255, 255, 0, 0.55);
+      }
+      50% {
+        box-shadow:
+          0 0 0 1px rgba(255, 255, 255, 0.06),
+          0 0 20px rgba(255, 255, 0, 0.8),
+          0 0 40px rgba(255, 0, 200, 0.55);
+      }
+      75% {
+        box-shadow:
+          0 0 0 1px rgba(255, 255, 255, 0.06),
+          0 0 20px rgba(255, 0, 200, 0.8),
+          0 0 40px rgba(0, 255, 255, 0.55);
+      }
+      100% {
+        box-shadow:
+          0 0 0 1px rgba(255, 255, 255, 0.06),
+          0 0 20px rgba(0, 255, 255, 0.8),
+          0 0 40px rgba(0, 255, 127, 0.55);
+      }
+    }
+
+    body.scene-party .card.rainbow-mode .device strong,
+    body.scene-party .card.rainbow-mode .device .state-text {
+      color: #ffffff;
+      text-shadow: 0 0 6px rgba(0, 0, 0, 0.9);
+    }
+
+    body.scene-party .card.rainbow-mode .device span {
+      color: #e9fff8;
+    }
+
     .control-overlay {
       display: none;
       position: fixed;
@@ -327,8 +368,14 @@
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to   { opacity: 1; transform: scale(1); }
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
     }
 
     .control-box {
@@ -350,6 +397,29 @@
       letter-spacing: 0.3px;
     }
 
+
+    .control-box .speaker-track-title {
+      color: #cfe;
+    }
+    .control-box .speaker-track-select {
+      width: 100%;
+      margin-top: 6px;
+      height: 36px;  
+      padding:0 36px 0 12px;
+      border-radius: 999px;
+      border: none;
+      background: rgba(255, 255, 255, 0.05);
+      color: #cfe;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .control-box .speaker-track-select option {
+      background: #141b24;
+      color: #ffffff;
+    }
+
+
     .control-box label {
       font-size: 14px;
       color: #bde;
@@ -359,7 +429,32 @@
       font-weight: 500;
     }
 
-    /* Styled ranges */
+    .control-box .speaker-media-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 8px 0 10px;
+    }
+    .control-box .speaker-media-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: none;
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s ease, transform 0.1s ease;
+    }
+    .control-box .speaker-media-btn:hover {
+      background: rgba(255, 255, 255, 0.22);
+      transform: translateY(-1px);
+    }
+
     .control-box input[type="range"],
     .modal input[type="range"],
     .card input[type="range"] {
@@ -367,7 +462,7 @@
       -webkit-appearance: none;
       appearance: none;
       height: 6px;
-      background: rgba(255,255,255,0.08);
+      background: rgba(255, 255, 255, 0.08);
       border-radius: 4px;
       outline: none;
     }
@@ -377,11 +472,15 @@
       height: 14px;
       border-radius: 50%;
       background: #00d4ff;
-      box-shadow: 0 0 8px rgba(0,212,255,0.3);
+      box-shadow: 0 0 8px rgba(0, 212, 255, 0.3);
       border: none;
     }
     .control-box input[type="range"]::-moz-range-thumb {
-      width: 14px; height: 14px; border-radius: 50%; background: #00d4ff; border: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #00d4ff;
+      border: none;
     }
 
     .control-box input[type="color"] {
@@ -400,14 +499,55 @@
       transform: scale(0.9);
     }
 
-    /* small helper for mobile */
-    @media (max-width:640px) {
-      .grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
-      .card { padding: 16px; border-radius: 14px; }
-      .card .device strong { font-size: 18px; }
+    .control-box .rainbow-toggle {
+      margin-top: 10px;
+      width: 100%;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      background: rgba(40, 20, 80, 0.95);
+      color: #fef;
+      font-size: 13px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .control-box .rainbow-toggle:hover {
+      background: rgba(80, 40, 130, 0.95);
+      transform: translateY(-1px);
+    }
+    .control-box .rainbow-toggle:active {
+      transform: translateY(1px) scale(0.98);
     }
 
-    /* --- Nút bật chế độ xóa + biểu tượng X trên card --- */
+    .control-box .speaker-track-select {
+      width: 100%;
+      margin-top: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: none;
+      background: rgba(255, 255, 255, 0.05);
+      color: #cfe;
+      font-size: 13px;
+      outline: none;
+    }
+
+    @media (max-width: 640px) {
+      .grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      }
+      .card {
+        padding: 16px;
+        border-radius: 14px;
+      }
+      .card .device strong {
+        font-size: 18px;
+      }
+    }
+
     .global-delete-toggle {
       position: fixed;
       right: 15px;
@@ -441,15 +581,15 @@
       display: none;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
       border: 2px solid #fff3;
+      z-index: 20;
     }
 
     .card.delete-mode .delete-badge {
       display: flex;
     }
 
-    /* ✅ Tự động di chuyển nút xóa thiết bị khi màn hình nhỏ */
     @media (max-width: 640px) {
       .global-delete-toggle {
         top: 60px;
@@ -463,24 +603,47 @@
       }
     }
 
-    /* ==== Voice UI ==== */
     .voice-btn {
-      position: fixed; right: 18px; bottom: 22px;
-      width: 58px; height: 58px; border-radius: 50%;
-      border: 2px solid rgba(0,255,255,.35);
+      position: fixed;
+      right: 18px;
+      bottom: 22px;
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      border: 2px solid rgba(0, 255, 255, 0.35);
       background: radial-gradient(circle at 30% 30%, #0ff3, #0aa3);
-      box-shadow: 0 6px 20px rgba(0,255,255,.25);
-      color:#fff; font-size: 22px; cursor: pointer; z-index: 7000;
+      box-shadow: 0 6px 20px rgba(0, 255, 255, 0.25);
+      color: #fff;
+      font-size: 22px;
+      cursor: pointer;
+      z-index: 7000;
     }
-    .voice-btn.recording { background: radial-gradient(circle, #ff4d4d, #b30000); box-shadow: 0 6px 20px rgba(255,80,80,.35); }
+    .voice-btn.recording {
+      background: radial-gradient(circle, #ff4d4d, #b30000);
+      box-shadow: 0 6px 20px rgba(255, 80, 80, 0.35);
+    }
     .voice-pill {
-      position: fixed; left: 50%; transform: translateX(-50%);
-      bottom: 90px; min-width: 220px; max-width: calc(100% - 40px);
-      background: rgba(0,0,0,.55); color:#cfe; border:1px solid rgba(0,212,255,.25);
-      padding: 8px 12px; border-radius: 12px; text-align:center; z-index: 7000;
-      display: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 90px;
+      min-width: 220px;
+      max-width: calc(100% - 40px);
+      background: rgba(0, 0, 0, 0.55);
+      color: #cfe;
+      border: 1px solid rgba(0, 212, 255, 0.25);
+      padding: 8px 12px;
+      border-radius: 12px;
+      text-align: center;
+      z-index: 7000;
+      display: none;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-    .voice-pill.show { display:block; }
+    .voice-pill.show {
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -490,7 +653,6 @@
   </nav>
 
   <header>
-    <!-- Nút bật/tắt chế độ xóa -->
     <div id="deleteModeBtn" class="global-delete-toggle">🗑️ Xóa thiết bị</div>
     <div class="welcome">
       <div class="title">My Smart Home</div>
@@ -499,10 +661,38 @@
     <div class="greet" id="greet"></div>
   </header>
 
-    <!-- SCENES BAR -->
-  <div class="section scenes-section">
+  <!-- Scenes -->
+  <div class="section" data-section="scenes">
     <h2>Scenes</h2>
-    <div id="scenesBar"></div>
+    <div class="grid" id="scenesGrid">
+      <div class="card scene-card" data-scene="relax">
+        <div class="scene-content">
+          <span class="scene-icon">🌙</span>
+          <span class="scene-title">Relax</span>
+        </div>
+      </div>
+
+      <div class="card scene-card" data-scene="focus">
+        <div class="scene-content">
+          <span class="scene-icon">💡</span>
+          <span class="scene-title">Focus</span>
+        </div>
+      </div>
+
+      <div class="card scene-card" data-scene="party">
+        <div class="scene-content">
+          <span class="scene-icon">🎉</span>
+          <span class="scene-title">Party</span>
+        </div>
+      </div>
+
+      <div class="card scene-card" data-scene="night">
+        <div class="scene-content">
+          <span class="scene-icon">🌃</span>
+          <span class="scene-title">Night</span>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- ENTRY -->
@@ -523,15 +713,14 @@
         </div>
       </div>
 
-      <!-- ADD CARD for Entry -->
       <div class="card add-card" data-target-section="entry" id="addEntry">
-        <div style="font-size:26px; line-height:1;">＋</div>
+        <div style="font-size: 26px; line-height: 1;">＋</div>
         <small>Thêm thiết bị</small>
       </div>
     </div>
   </div>
 
-  <!-- LIVING ROOM -->
+  <!-- LIVING -->
   <div class="section" data-section="living">
     <h2>Living Room</h2>
     <div class="grid" id="livingGrid">
@@ -556,9 +745,8 @@
         </div>
       </div>
 
-      <!-- ADD CARD for Living -->
       <div class="card add-card" data-target-section="living" id="addLiving">
-        <div style="font-size:26px; line-height:1;">＋</div>
+        <div style="font-size: 26px; line-height: 1;">＋</div>
         <small>Thêm thiết bị</small>
       </div>
     </div>
@@ -589,15 +777,14 @@
         </div>
       </div>
 
-      <!-- ADD CARD for Kitchen -->
       <div class="card add-card" data-target-section="kitchen" id="addKitchen">
-        <div style="font-size:26px; line-height:1;">＋</div>
+        <div style="font-size: 26px; line-height: 1;">＋</div>
         <small>Thêm thiết bị</small>
       </div>
     </div>
   </div>
 
-  <!-- Modal for adding -->
+  <!-- Modal add device -->
   <div class="modal" id="addModal">
     <div class="card-modal">
       <h3>Thêm thiết bị mới</h3>
@@ -623,48 +810,56 @@
     </div>
   </div>
 
-  <!-- ====== SCRIPT 1: quản lý card & thiết bị ====== -->
+  <!-- SCRIPT 1: quản lý card / thiết bị -->
   <script>
-    // --- storage key
     const STORAGE_KEY = "my_smart_devices_v1";
-    // --- Anti-bounce: chặn Firebase overwrite trong 600ms sau khi user toggle ---
     window._preventFirebaseSync = false;
+
     function blockFirebaseSync() {
       window._preventFirebaseSync = true;
-      setTimeout(() => window._preventFirebaseSync = false, 600);
+      setTimeout(function () {
+        window._preventFirebaseSync = false;
+      }, 600);
     }
 
-    // Fix pointer events cho mobile (Chrome / Safari)
-    if (window.matchMedia("(pointer: coarse)").matches) {
-      document.body.style.touchAction = "manipulation"; // tránh delay 300ms
+    if (window.matchMedia && window.matchMedia("(pointer: coarse)").matches) {
+      document.body.style.touchAction = "manipulation";
     }
 
-    // load existing devices
     window.saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
 
-    // map section -> grid element
     const sectionMap = {
-      entry: document.getElementById('entryGrid'),
-      living: document.getElementById('livingGrid'),
-      kitchen: document.getElementById('kitchenGrid')
+      entry: document.getElementById("entryGrid"),
+      living: document.getElementById("livingGrid"),
+      kitchen: document.getElementById("kitchenGrid"),
     };
 
-    // helper to save (localStorage + optional Firebase)
-    function saveAndRefresh(doRender = true, syncFirebase = true) {
-      const devices = window.saved || [];
+    function saveAndRefresh(doRender, syncFirebase) {
+      if (doRender === undefined) doRender = true;
+      if (syncFirebase === undefined) syncFirebase = true;
+
+      var devices = window.saved || [];
       localStorage.setItem(STORAGE_KEY, JSON.stringify(devices));
 
       if (doRender) {
-        try { renderSavedDevices(); } catch (e) { console.error(e); }
+        try {
+          renderSavedDevices();
+        } catch (e) {
+          console.error(e);
+        }
       }
 
       if (!syncFirebase) return;
 
-      if (typeof window.saveDevicesToFirebase === 'function') {
+      if (typeof window.saveDevicesToFirebase === "function") {
         if (window._firebaseTimer) clearTimeout(window._firebaseTimer);
-        window._firebaseTimer = setTimeout(() => {
+        window._firebaseTimer = setTimeout(function () {
           try {
-            window.saveDevicesToFirebase(window.saved || []).catch(err => console.error(err));
+            window
+              .saveDevicesToFirebase(window.saved || [])
+              .catch(function (err) {
+                console.error(err);
+              });
           } catch (err) {
             console.error(err);
           }
@@ -672,84 +867,146 @@
       }
     }
 
-    // helper: convert hex color (#rrggbb or #rgb) to rgba(r,g,b,a)
-    function hexToRgba(hex, alpha = 1) {
-      if (!hex) return `rgba(0,0,0,${alpha})`;
-      hex = hex.replace('#','');
+    function hexToRgba(hex, alpha) {
+      if (alpha === undefined) alpha = 1;
+      if (!hex) return "rgba(0,0,0," + alpha + ")";
+      hex = String(hex).replace("#", "");
       if (hex.length === 3) {
-        hex = hex.split('').map(h => h + h).join('');
+        hex =
+          hex[0] +
+          hex[0] +
+          hex[1] +
+          hex[1] +
+          hex[2] +
+          hex[2];
       }
-      const intVal = parseInt(hex, 16);
-      const r = (intVal >> 16) & 255;
-      const g = (intVal >> 8) & 255;
-      const b = intVal & 255;
-      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      var intVal = parseInt(hex, 16);
+      var r = (intVal >> 16) & 255;
+      var g = (intVal >> 8) & 255;
+      var b = intVal & 255;
+      return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
     }
 
-    // Visual update helper
-    function updateCardVisual(card, dev) {
-      let level = 0;
-      if (dev.type === "light")    level = (dev.brightness ?? 100) / 100;
-      else if (dev.type === "fan") level = (dev.speed ?? 3) / 3;
-      else if (dev.type === "speaker") level = (dev.volume ?? 100) / 100;
-      level = Math.max(0, Math.min(level, 1));
-
-      if (dev.type === 'light')   dev.state = (dev.brightness ?? 0) > 0;
-      else if (dev.type === 'fan')    dev.state = (dev.speed ?? 0) > 0;
-      else if (dev.type === 'speaker') dev.state = (dev.volume ?? 0) > 0;
-
-      const accentColor  = (dev.type === 'light' && dev.color) ? dev.color : '#00fff0';
-      const accentStrong = hexToRgba(accentColor, 0.65);
-
-      if (level <= 0) {
-        card.style.background  = 'rgba(255,255,255,0.04)';
-        card.style.boxShadow   = 'none';
-        card.style.borderColor = 'rgba(255,255,255,0.04)';
-        card.classList.remove('on');
-      } else {
-        const blur  = 10 + level * 25;
-        const alpha = 0.25 + level * 0.45;
-        card.style.background =
-          `linear-gradient(0deg, ${hexToRgba(accentColor, 0.12)} ${level * 100}%, rgba(255,255,255,0.05) ${level * 100}%)`;
-        card.style.boxShadow   = `0 0 ${blur}px ${hexToRgba(accentColor, alpha)}`;
-        card.style.borderColor = accentStrong;
-        card.classList.add('on');
-      }
-      card.style.transition = "background 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease";
-
-      const title = card.querySelector('strong');
-      if (title) {
-        title.style.color = `rgba(255,255,255,${0.6 + 0.4 * level})`;
-      }
-
-      if (typeof updateStateText === 'function') updateStateText(card, dev);
-    }
+    const SPEAKER_TRACK_OPTIONS = [
+      { id: 1, label: "Bài 1", title: "Party Time!" },
+      { id: 2, label: "Bài 2", title: "Chill and Relax" },
+      //{ id: 3, label: "Bài 3", title: "Party Time" },
+    ];
 
     function updateStateText(card, dev) {
-      const stateText = card.querySelector('.state-text');
+      var stateText = card.querySelector(".state-text");
       if (!stateText) return;
-      if (dev.type === 'speaker') {
-        stateText.textContent = dev.state ? 'Playing' : 'Off';
-      } else if (dev.type === 'thermostat') {
-        stateText.textContent = (typeof dev.temperature !== 'undefined') ? `${dev.temperature}°C` : '—';
+
+      // ===== LOA =====
+      if (dev.type === "speaker") {
+        stateText.textContent = dev.state ? "Playing" : "Off";
+
+      // ===== SENSOR & THERMOSTAT (DHT11, cảm biến nhiệt/ẩm) =====
+      } else if (dev.type === "sensor" || dev.type === "thermostat") {
+        // chấp cả temperature/humidity và temp/hum
+        var t = (typeof dev.temperature === "number")
+                  ? dev.temperature
+                  : (typeof dev.temp === "number" ? dev.temp : null);
+        var h = (typeof dev.humidity === "number")
+                  ? dev.humidity
+                  : (typeof dev.hum === "number" ? dev.hum : null);
+
+        var text = "—";
+        if (t != null && h != null) {
+          text = t.toFixed(1) + "°C · " + h.toFixed(0) + "%";
+        } else if (t != null) {
+          text = t.toFixed(1) + "°C";
+        } else if (h != null) {
+          text = h.toFixed(0) + "%";
+        }
+        stateText.textContent = text;
+
+      // ===== MẶC ĐỊNH: On / Off =====
       } else {
-        stateText.textContent = dev.state ? 'On' : 'Off';
+        stateText.textContent = dev.state ? "On" : "Off";
       }
-      if (dev.state) {
-        stateText.style.color = '#00ffcc';
-        stateText.style.fontWeight = '600';
+
+      // sensor / thermostat luôn coi như “đang chạy” để line chữ nổi bật
+      var isOn =
+        dev.type === "sensor" || dev.type === "thermostat"
+          ? true
+          : !!dev.state;
+
+      if (isOn) {
+        stateText.style.color = "#00ffcc";
+        stateText.style.fontWeight = "600";
       } else {
-        stateText.style.color = '#bcd';
-        stateText.style.fontWeight = '400';
+        stateText.style.color = "#bcd";
+        stateText.style.fontWeight = "400";
       }
     }
 
-    // ---------- Gộp tap + long-press ----------
+    function updateCardVisual(card, dev) {
+      var isRainbow = dev.type === "light" && dev.rainbow === true;
+
+      var level = 0;
+      if (dev.type === "light") level = (dev.brightness || 0) / 100;
+      else if (dev.type === "fan") level = (dev.speed || 0) / 3;
+      else if (dev.type === "speaker") level = (dev.volume || 0) / 100;
+
+      if (level < 0) level = 0;
+      if (level > 1) level = 1;
+
+      if (dev.type === "light") dev.state = (dev.brightness || 0) > 0;
+      else if (dev.type === "fan") dev.state = (dev.speed || 0) > 0;
+      else if (dev.type === "speaker") dev.state = (dev.volume || 0) > 0;
+
+      var accentColor =
+        dev.type === "light" && dev.color ? dev.color : "#00fff0";
+      var accentStrong = hexToRgba(accentColor, 0.65);
+
+      if (isRainbow && dev.state) {
+        card.classList.add("rainbow-mode");
+        card.style.background = "";
+        card.style.boxShadow = "";
+        card.style.borderColor = "";
+      } else {
+        card.classList.remove("rainbow-mode");
+        if (level <= 0 || !dev.state) {
+          card.style.background = "rgba(255,255,255,0.04)";
+          card.style.boxShadow = "none";
+          card.style.borderColor = "rgba(255,255,255,0.04)";
+          card.classList.remove("on");
+        } else {
+          var blur = 10 + level * 25;
+          var alpha = 0.25 + level * 0.45;
+          card.style.background =
+            "linear-gradient(0deg," +
+            hexToRgba(accentColor, 0.12) +
+            " " +
+            level * 100 +
+            "%, rgba(255,255,255,0.05) " +
+            level * 100 +
+            "%)";
+          card.style.boxShadow =
+            "0 0 " + blur + "px " + hexToRgba(accentColor, alpha);
+          card.style.borderColor = accentStrong;
+          card.classList.add("on");
+        }
+      }
+      card.style.transition =
+        "background 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease";
+
+      var title = card.querySelector("strong");
+      if (title) {
+        var tLevel = dev.state ? 1 : level;
+        title.style.color =
+          "rgba(255,255,255," + (0.6 + 0.4 * tLevel) + ")";
+      }
+
+      updateStateText(card, dev);
+    }
+
     function attachPressHandlers(card, dev, onTap) {
-      const threshold = 600; // ms
-      let timer = null;
-      let longPressed = false;
-      let isDown = false;
+      var threshold = 600;
+      var timer = null;
+      var longPressed = false;
+      var isDown = false;
 
       function clearTimer() {
         if (timer) {
@@ -759,102 +1016,243 @@
       }
 
       function removeOverlayIfAny() {
-        document.querySelectorAll('.control-overlay').forEach(o => o.remove());
+        document
+          .querySelectorAll(".control-overlay")
+          .forEach(function (o) {
+            o.parentNode && o.parentNode.removeChild(o);
+          });
       }
 
       function openOverlay() {
         longPressed = true;
-        card.dataset.longpressing = 'true';
+        card.dataset.longpressing = "true";
 
         removeOverlayIfAny();
-        const overlay = document.createElement('div');
-        overlay.className = 'control-overlay';
-        overlay.style.display = 'flex';
+        var overlay = document.createElement("div");
+        overlay.className = "control-overlay";
+        overlay.style.display = "flex";
 
-        const box = document.createElement('div');
-        box.className = 'control-box';
+        var box = document.createElement("div");
+        box.className = "control-box";
 
-        const titleMap = {
-          light: 'Điều chỉnh đèn',
-          fan: 'Điều chỉnh quạt',
-          speaker: 'Điều chỉnh loa',
-          sensor: 'Thông tin cảm biến'
+        var titleMap = {
+          light: "Điều chỉnh đèn",
+          fan: "Điều chỉnh quạt",
+          speaker: "Điều chỉnh loa",
+          sensor: "Thông tin cảm biến",
         };
 
-        if (dev.type === 'light') {
-          box.innerHTML = `
-            <h4>${titleMap.light}</h4>
-            <label>Độ sáng</label>
-            <input type="range" min="0" max="100" value="${dev.brightness ?? 100}">
-            <label>Màu sắc</label>
-            <input type="color" value="${dev.color ?? '#ffffff'}">
-          `;
-        } else if (dev.type === 'fan') {
-          box.innerHTML = `
-            <h4>${titleMap.fan}</h4>
-            <label>Tốc độ</label>
-            <input type="range" min="0" max="3" value="${dev.speed ?? 1}">
-          `;
-        } else if (dev.type === 'speaker') {
-          box.innerHTML = `
-            <h4>${titleMap.speaker}</h4>
-            <label>Âm lượng</label>
-            <input type="range" min="0" max="100" value="${dev.volume ?? 50}">
-          `;
+        if (dev.type === "light") {
+          box.innerHTML =
+            '<h4>' +
+            titleMap.light +
+            '</h4>' +
+            "<label>Độ sáng</label>" +
+            '<input type="range" min="0" max="100" value="' +
+            (dev.brightness || 100) +
+            '">' +
+            "<label>Màu sắc</label>" +
+            '<input type="color" value="' +
+            (dev.color || "#ffffff") +
+            '">';
+        } else if (dev.type === "fan") {
+          box.innerHTML =
+            '<h4>' +
+            titleMap.fan +
+            '</h4>' +
+            "<label>Tốc độ</label>" +
+            '<input type="range" min="0" max="3" value="' +
+            (dev.speed || 1) +
+            '">';
+        } else if (dev.type === "speaker") {
+          var curTrackId = dev.track_index || 1;
+          var meta =
+            SPEAKER_TRACK_OPTIONS.filter(function (t) {
+              return t.id === curTrackId;
+            })[0] || SPEAKER_TRACK_OPTIONS[0];
+
+          var optionsHtml = SPEAKER_TRACK_OPTIONS.map(function (o) {
+            return (
+              '<option value="' +
+              o.id +
+              '"' +
+              (o.id === curTrackId ? " selected" : "") +
+              ">" +
+              o.label +
+              "</option>"
+            );
+          }).join("");
+
+          box.innerHTML =
+            '<h4>' +
+            titleMap.speaker +
+            "</h4>" +
+            "<label>Đang phát</label>" +
+            '<div style="text-align:left; margin-bottom:6px;">' +
+            '<span class="speaker-track-title">' +
+            meta.title +
+            "</span>" +
+            "</div>" +
+            "<label>Bài hát</label>" +
+            '<select class="speaker-track-select">' +
+            optionsHtml +
+            "</select>" +
+            '<div class="speaker-media-row" style="margin-top:8px; margin-bottom:10px; display:flex; gap:10px; justify-content:center;">' +
+            '<button class="speaker-media-btn" data-act="prev">⏮</button>' +
+            '<button class="speaker-media-btn" data-act="playpause">⏯</button>' +
+            '<button class="speaker-media-btn" data-act="next">⏭</button>' +
+            "</div>" +
+            "<label>Âm lượng</label>" +
+            '<input type="range" min="0" max="100" value="' +
+            (dev.volume || 50) +
+            '">';
         } else {
-          box.innerHTML = `
-            <h4>${titleMap.sensor}</h4>
-            <div style="text-align:left; margin-top:10px; color:#bcd;">
-              Không có tùy chọn bổ sung cho thiết bị này.
-            </div>
-          `;
+          box.innerHTML =
+            "<h4>" +
+            titleMap.sensor +
+            "</h4>" +
+            '<div style="text-align:left; margin-top:10px; color:#bcd;">' +
+            "Không có tùy chọn bổ sung cho thiết bị này." +
+            "</div>";
         }
 
         overlay.appendChild(box);
         document.body.appendChild(overlay);
 
-        const range = box.querySelector('input[type="range"]');
-        const color = box.querySelector('input[type="color"]');
+        var range = box.querySelector('input[type="range"]');
+        var color = box.querySelector('input[type="color"]');
 
         if (range) {
-          const onRange = () => {
-            if (dev.type === 'light') {
+          var onRange = function () {
+            if (dev.type === "light") {
               dev.brightness = Number(range.value);
               dev.state = dev.brightness > 0;
-            } else if (dev.type === 'fan') {
+            } else if (dev.type === "fan") {
               dev.speed = Number(range.value);
               dev.state = dev.speed > 0;
-            } else if (dev.type === 'speaker') {
+            } else if (dev.type === "speaker") {
               dev.volume = Number(range.value);
               dev.state = dev.volume > 0;
             }
-
             updateCardVisual(card, dev);
-            if (typeof updateStateText === 'function') updateStateText(card, dev);
-
             saveAndRefresh(false, false);
-            window.saveDeviceDebounced && window.saveDeviceDebounced(dev);
+            if (window.saveDeviceDebounced)
+              window.saveDeviceDebounced(dev);
           };
-
-          range.addEventListener('input', onRange);
-          range.addEventListener('change', onRange);
+          range.addEventListener("input", onRange);
+          range.addEventListener("change", onRange);
         }
 
         if (color) {
-          const onColor = () => {
+          var onColor = function () {
             dev.color = color.value;
+            if (dev.type === "light") {
+              dev.rainbow = false;
+              dev.state = true;
+            }
             updateCardVisual(card, dev);
             saveAndRefresh(false, false);
-            window.saveDeviceDebounced && window.saveDeviceDebounced(dev);
+            if (window.saveDeviceDebounced)
+              window.saveDeviceDebounced(dev);
           };
-          color.addEventListener('input', onColor);
-          color.addEventListener('change', onColor);
+          color.addEventListener("input", onColor);
+          color.addEventListener("change", onColor);
         }
 
-        overlay.addEventListener('click', (ev) => {
+        // currentSceneId sẽ được scenes.js cập nhật từ Firebase
+        var currentSceneId = document.body.dataset.scene || null;
+
+        if (dev.type === "light" && currentSceneId === "party") {
+          var rb = document.createElement("button");
+          rb.className = "rainbow-toggle";
+
+          function updateRbLabel() {
+            rb.textContent = dev.rainbow
+              ? "🌈 Đang nhảy cầu vồng"
+              : "🌈 Bật nhảy cầu vồng";
+          }
+          updateRbLabel();
+
+          rb.addEventListener("click", function () {
+            dev.rainbow = !dev.rainbow;
+            if (dev.rainbow) {
+              if (!dev.brightness) dev.brightness = 100;
+              dev.state = true;
+            }
+            updateRbLabel();
+            updateCardVisual(card, dev);
+            saveAndRefresh(false, false);
+            if (window.saveDeviceDebounced)
+              window.saveDeviceDebounced(dev);
+          });
+
+          box.appendChild(rb);
+        }
+
+        if (dev.type === "speaker") {
+          var titleSpan = box.querySelector(".speaker-track-title");
+          var trackSelect = box.querySelector(".speaker-track-select");
+          var mediaBtns = box.querySelectorAll(".speaker-media-btn");
+          var volRange = box.querySelector('input[type="range"]');
+
+          function syncAll() {
+            updateCardVisual(card, dev);
+            if (typeof updateStateText === "function")
+              updateStateText(card, dev);
+            saveAndRefresh(false, false);
+            if (window.saveDeviceDebounced)
+              window.saveDeviceDebounced(dev);
+          }
+
+          if (trackSelect) {
+            trackSelect.addEventListener("change", function () {
+              var newId = Number(trackSelect.value);
+              dev.track_index = newId;
+              var meta =
+                SPEAKER_TRACK_OPTIONS.filter(function (t) {
+                  return t.id === newId;
+                })[0] || SPEAKER_TRACK_OPTIONS[0];
+              if (titleSpan) titleSpan.textContent = meta.title;
+              syncAll();
+            });
+          }
+
+          mediaBtns.forEach(function (btn) {
+            btn.addEventListener("click", function () {
+              var act = btn.getAttribute("data-act");
+              if (act === "playpause") {
+                if (typeof onTap === "function") onTap();
+                if (volRange) volRange.value = dev.volume || 0;
+              } else if (act === "prev" || act === "next") {
+                var ts = box.querySelector(".speaker-track-select");
+                var tt = box.querySelector(".speaker-track-title");
+                if (!ts) return;
+                var currentId =
+                  dev.track_index || Number(ts.value) || 1;
+                var idx = SPEAKER_TRACK_OPTIONS.findIndex(function (
+                  t
+                ) {
+                  return t.id === currentId;
+                });
+                if (idx < 0) idx = 0;
+                if (act === "prev") idx--;
+                else idx++;
+                if (idx < 0) idx = SPEAKER_TRACK_OPTIONS.length - 1;
+                if (idx >= SPEAKER_TRACK_OPTIONS.length) idx = 0;
+                var newTrack = SPEAKER_TRACK_OPTIONS[idx];
+                dev.track_index = newTrack.id;
+                ts.value = String(newTrack.id);
+                if (tt) tt.textContent = newTrack.title;
+                syncAll();
+              }
+            });
+          });
+        }
+
+        overlay.addEventListener("click", function (ev) {
           if (!box.contains(ev.target)) {
             overlay.remove();
-            setTimeout(() => {
+            setTimeout(function () {
               delete card.dataset.longpressing;
               longPressed = false;
             }, 20);
@@ -863,13 +1261,12 @@
       }
 
       function handleDown(e) {
-        if (e.button !== undefined && e.button !== 0) return; // không phải chuột trái
+        if (e.button !== undefined && e.button !== 0) return;
         if (e.touches && e.touches.length > 1) return;
-
         isDown = true;
         longPressed = false;
         clearTimer();
-        timer = setTimeout(() => {
+        timer = setTimeout(function () {
           timer = null;
           if (isDown) openOverlay();
         }, threshold);
@@ -879,17 +1276,15 @@
         if (!isDown) return;
         isDown = false;
         clearTimer();
-
-        if (longPressed || card.dataset.longpressing === 'true') {
-          // vừa long-press xong → không toggle
-          e.preventDefault && e.preventDefault();
-          e.stopPropagation && e.stopPropagation();
+        if (
+          longPressed ||
+          card.dataset.longpressing === "true"
+        ) {
+          if (e.preventDefault) e.preventDefault();
+          if (e.stopPropagation) e.stopPropagation();
           return;
         }
-
-        if (typeof onTap === 'function') {
-          onTap();
-        }
+        if (typeof onTap === "function") onTap();
       }
 
       function handleCancel() {
@@ -898,438 +1293,637 @@
       }
 
       if (window.PointerEvent) {
-        card.addEventListener('pointerdown', handleDown);
-        card.addEventListener('pointerup',   handleUp);
-        card.addEventListener('pointercancel', handleCancel);
-        card.addEventListener('pointerleave',  handleCancel);
+        card.addEventListener("pointerdown", handleDown);
+        card.addEventListener("pointerup", handleUp);
+        card.addEventListener("pointercancel", handleCancel);
+        card.addEventListener("pointerleave", handleCancel);
       } else {
-        // Fallback cũ (thiết bị không hỗ trợ PointerEvent)
-        card.addEventListener('touchstart', handleDown, { passive: true });
-        card.addEventListener('touchend',   handleUp,   { passive: false });
-        card.addEventListener('touchcancel', handleCancel);
-        card.addEventListener('mousedown',  handleDown);
-        card.addEventListener('mouseup',    handleUp);
-        card.addEventListener('mouseleave', handleCancel);
+        card.addEventListener(
+          "touchstart",
+          handleDown,
+          { passive: true }
+        );
+        card.addEventListener(
+          "touchend",
+          handleUp,
+          { passive: false }
+        );
+        card.addEventListener("touchcancel", handleCancel);
+        card.addEventListener("mousedown", handleDown);
+        card.addEventListener("mouseup", handleUp);
+        card.addEventListener("mouseleave", handleCancel);
       }
     }
 
-    // ---------- Build card for dynamic devices ----------
     function buildDeviceCard(dev) {
-      const card = document.createElement('div');
-      card.className = 'card';
+      var card = document.createElement("div");
+      card.className = "card";
       card.dataset.generated = "true";
       card.id = dev.id;
 
-      if (dev.type === 'light')      dev.state = (dev.brightness ?? 100) > 0;
-      else if (dev.type === 'fan')   dev.state = (dev.speed ?? 1) > 0;
-      else if (dev.type === 'speaker') dev.state = (dev.volume ?? 50) > 0;
+      if (dev.type === "light")
+        dev.state = (dev.brightness || 0) > 0;
+      else if (dev.type === "fan")
+        dev.state = (dev.speed || 0) > 0;
+      else if (dev.type === "speaker")
+        dev.state = (dev.volume || 0) > 0;
 
-      if (dev.state) card.classList.add('on');
+      if (dev.state) card.classList.add("on");
 
-      const icon = dev.type === 'fan'       ? '🌀' :
-                   dev.type === 'speaker'   ? '🔊' :
-                   dev.type === 'thermostat'? '🌡️' :
-                   dev.type === 'sensor'    ? '📟' : '💡';
+      var icon =
+        dev.type === "fan"
+          ? "🌀"
+          : dev.type === "speaker"
+          ? "🔊"
+          : dev.type === "thermostat"
+          ? "🌡️"
+          : dev.type === "sensor"
+          ? "📟"
+          : "💡";
 
-      card.innerHTML = `
-        <div class="device">
-          <strong>${icon} ${dev.name}</strong>
-          <span class="state-text">${dev.state? (dev.type==='speaker'? 'Playing':'On') : 'Off'}</span>
-        </div>
-        <div class="controls">
-          <!-- controls sẽ được set theo type -->
-        </div>
-      `;
+      card.innerHTML =
+        '<div class="device">' +
+        "<strong>" +
+        icon +
+        " " +
+        dev.name +
+        "</strong>" +
+        '<span class="state-text">' +
+        (dev.state
+          ? dev.type === "speaker"
+            ? "Playing"
+            : "On"
+          : "Off") +
+        "</span>" +
+        "</div>" +
+        '<div class="controls"></div>';
 
       updateStateText(card, dev);
 
-      // toggle on click (tap)
-      const doToggle = () => {
+      function doToggle() {
         blockFirebaseSync();
-        if (card.dataset.longpressing === 'true') return;
-        if (dev.type === 'thermostat') return;
+        if (card.dataset.longpressing === "true") return;
+        if (dev.type === "thermostat") return;
 
-        const wasOn        = !!dev.state;
-        const oldBright    = typeof dev.brightness === 'number' ? dev.brightness : 0;
-        const oldSpeed     = typeof dev.speed === 'number' ? dev.speed : 0;
-        const oldVolume    = typeof dev.volume === 'number' ? dev.volume : 0;
+        var wasOn = !!dev.state;
+        var oldBright =
+          typeof dev.brightness === "number" ? dev.brightness : 0;
+        var oldSpeed =
+          typeof dev.speed === "number" ? dev.speed : 0;
+        var oldVolume =
+          typeof dev.volume === "number" ? dev.volume : 0;
 
-        // đảo trạng thái
         dev.state = !wasOn;
 
-        if (dev.type === 'light') {
+        if (dev.type === "light") {
           if (!dev.state) {
             if (oldBright > 0) dev.prevBrightness = oldBright;
             dev.brightness = 0;
           } else {
-            let target = (typeof dev.prevBrightness === 'number' && dev.prevBrightness > 0)
-              ? dev.prevBrightness
-              : (oldBright > 0 ? oldBright : 100);
+            var target =
+              typeof dev.prevBrightness === "number" &&
+              dev.prevBrightness > 0
+                ? dev.prevBrightness
+                : oldBright > 0
+                ? oldBright
+                : 100;
             dev.brightness = target;
           }
-        } else if (dev.type === 'fan') {
+        } else if (dev.type === "fan") {
           if (!dev.state) {
             if (oldSpeed > 0) dev.prevSpeed = oldSpeed;
             dev.speed = 0;
           } else {
-            let target = (typeof dev.prevSpeed === 'number' && dev.prevSpeed > 0)
-              ? dev.prevSpeed
-              : (oldSpeed > 0 ? oldSpeed : 1);
-            dev.speed = target;
+            var t2 =
+              typeof dev.prevSpeed === "number" &&
+              dev.prevSpeed > 0
+                ? dev.prevSpeed
+                : oldSpeed > 0
+                ? oldSpeed
+                : 1;
+            dev.speed = t2;
           }
-        } else if (dev.type === 'speaker') {
+        } else if (dev.type === "speaker") {
           if (!dev.state) {
             if (oldVolume > 0) dev.prevVolume = oldVolume;
             dev.volume = 0;
           } else {
-            let target = (typeof dev.prevVolume === 'number' && dev.prevVolume > 0)
-              ? dev.prevVolume
-              : (oldVolume > 0 ? oldVolume : 50);
-            dev.volume = target;
+            var t3 =
+              typeof dev.prevVolume === "number" &&
+              dev.prevVolume > 0
+                ? dev.prevVolume
+                : oldVolume > 0
+                ? oldVolume
+                : 50;
+            dev.volume = t3;
           }
         }
 
         updateCardVisual(card, dev);
         updateStateText(card, dev);
         saveAndRefresh(false, false);
-        window.saveDeviceDebounced && window.saveDeviceDebounced(dev);
-      };
+        if (window.saveDeviceDebounced)
+          window.saveDeviceDebounced(dev);
+      }
 
-      // Gắn handler tap + long-press
       attachPressHandlers(card, dev, doToggle);
 
-      const controls = card.querySelector('.controls');
+      var controls = card.querySelector(".controls");
 
-      if (dev.type === 'light') {
-        const label  = document.createElement('div'); label.className='label'; label.textContent='Điều chỉnh đèn';
-        const bright = document.createElement('input'); bright.type='range'; bright.min=0; bright.max=100; bright.value = dev.brightness ?? 100;
-        const color  = document.createElement('input'); color.type='color'; color.value = dev.color ?? '#ffffff';
+      if (dev.type === "light") {
+        var label = document.createElement("div");
+        label.className = "label";
+        label.textContent = "Điều chỉnh đèn";
+        var bright = document.createElement("input");
+        bright.type = "range";
+        bright.min = 0;
+        bright.max = 100;
+        bright.value = dev.brightness || 100;
+        var color = document.createElement("input");
+        color.type = "color";
+        color.value = dev.color || "#ffffff";
+
         controls.appendChild(label);
         controls.appendChild(bright);
         controls.appendChild(color);
 
-        const onBright = () => {
+        var onBright = function () {
           dev.brightness = Number(bright.value);
           dev.state = dev.brightness > 0;
           updateCardVisual(card, dev);
-          if (typeof updateStateText === 'function') updateStateText(card, dev);
+          updateStateText(card, dev);
           saveAndRefresh(false, false);
-          window.saveDeviceDebounced && window.saveDeviceDebounced(dev);
+          if (window.saveDeviceDebounced)
+            window.saveDeviceDebounced(dev);
         };
-        bright.addEventListener('input', onBright);
-        bright.addEventListener('change', onBright);
+        bright.addEventListener("input", onBright);
+        bright.addEventListener("change", onBright);
 
-        const onColor = () => {
+        var onColor = function () {
           dev.color = color.value;
           updateCardVisual(card, dev);
           saveAndRefresh(false, false);
-          window.saveDeviceDebounced && window.saveDeviceDebounced(dev);
+          if (window.saveDeviceDebounced)
+            window.saveDeviceDebounced(dev);
         };
-        color.addEventListener('input', onColor);
-        color.addEventListener('change', onColor);
-
-      } else if (dev.type === 'fan') {
-        const label = document.createElement('div'); label.className='label'; label.textContent='Tốc độ quạt';
-        const speed = document.createElement('input'); speed.type='range'; speed.min=0; speed.max=3; speed.value = dev.speed ?? 1;
-        controls.appendChild(label);
+        color.addEventListener("input", onColor);
+        color.addEventListener("change", onColor);
+      } else if (dev.type === "fan") {
+        var label2 = document.createElement("div");
+        label2.className = "label";
+        label2.textContent = "Tốc độ quạt";
+        var speed = document.createElement("input");
+        speed.type = "range";
+        speed.min = 0;
+        speed.max = 3;
+        speed.value = dev.speed || 1;
+        controls.appendChild(label2);
         controls.appendChild(speed);
 
-        const onSpeedChange = () => {
+        var onSpeedChange = function () {
           dev.speed = Number(speed.value);
           dev.state = dev.speed > 0;
           updateCardVisual(card, dev);
-          if (typeof updateStateText === 'function') updateStateText(card, dev);
+          updateStateText(card, dev);
           saveAndRefresh(false, false);
-          window.saveDeviceDebounced && window.saveDeviceDebounced(dev);
+          if (window.saveDeviceDebounced)
+            window.saveDeviceDebounced(dev);
         };
-        speed.addEventListener('input', onSpeedChange);
-        speed.addEventListener('change', onSpeedChange);
-
-      } else if (dev.type === 'speaker') {
-        const label = document.createElement('div'); label.className='label'; label.textContent='Âm lượng';
-        const vol   = document.createElement('input'); vol.type='range'; vol.min=0; vol.max=100; vol.value = dev.volume ?? 50;
-        controls.appendChild(label);
+        speed.addEventListener("input", onSpeedChange);
+        speed.addEventListener("change", onSpeedChange);
+      } else if (dev.type === "speaker") {
+        var label3 = document.createElement("div");
+        label3.className = "label";
+        label3.textContent = "Âm lượng";
+        var vol = document.createElement("input");
+        vol.type = "range";
+        vol.min = 0;
+        vol.max = 100;
+        vol.value = dev.volume || 50;
+        controls.appendChild(label3);
         controls.appendChild(vol);
 
-        const onVolChange = () => {
+        var onVolChange = function () {
           dev.volume = Number(vol.value);
           dev.state = dev.volume > 0;
           updateCardVisual(card, dev);
-          if (typeof updateStateText === 'function') updateStateText(card, dev);
+          updateStateText(card, dev);
           saveAndRefresh(false, false);
-          window.saveDeviceDebounced && window.saveDeviceDebounced(dev);
+          if (window.saveDeviceDebounced)
+            window.saveDeviceDebounced(dev);
         };
-        vol.addEventListener('input', onVolChange);
-        vol.addEventListener('change', onVolChange);
-
-      } else if (dev.type === 'thermostat') {
-        const label = document.createElement('div');
-        label.className = 'label';
-        label.textContent = 'Nhiệt độ';
-        const temp = document.createElement('input');
-        temp.type = 'range';
+        vol.addEventListener("input", onVolChange);
+        vol.addEventListener("change", onVolChange);
+      } else if (dev.type === "thermostat") {
+        var label4 = document.createElement("div");
+        label4.className = "label";
+        label4.textContent = "Nhiệt độ";
+        var temp = document.createElement("input");
+        temp.type = "range";
         temp.min = 16;
         temp.max = 32;
-        temp.value = dev.temperature ?? 24;
-        controls.appendChild(label);
+        temp.value = dev.temperature || 24;
+        controls.appendChild(label4);
         controls.appendChild(temp);
 
-        const onTempChange = () => {
+        var onTempChange = function () {
           dev.temperature = Number(temp.value);
-          if (typeof updateStateText === 'function') updateStateText(card, dev);
+          updateStateText(card, dev);
           updateCardVisual(card, dev);
           saveAndRefresh(false, false);
-          window.saveDeviceDebounced && window.saveDeviceDebounced(dev);
+          if (window.saveDeviceDebounced)
+            window.saveDeviceDebounced(dev);
         };
-        temp.addEventListener('input', onTempChange);
-        temp.addEventListener('change', onTempChange);
-
+        temp.addEventListener("input", onTempChange);
+        temp.addEventListener("change", onTempChange);
       } else {
-        const label = document.createElement('div'); label.className='label'; label.textContent='No extra controls';
-        controls.appendChild(label);
+        var label5 = document.createElement("div");
+        label5.className = "label";
+        label5.textContent = "No extra controls";
+        controls.appendChild(label5);
       }
 
       updateCardVisual(card, dev);
-      if (typeof updateStateText === 'function') updateStateText(card, dev);
+      updateStateText(card, dev);
       addDeleteBadge(card, dev);
       return card;
     }
 
-    // render saved devices into their sections
     function renderSavedDevices() {
-      document.querySelectorAll('.card[data-generated="true"]').forEach(n => n.remove());
-      (window.saved || []).forEach(dev => {
-        const card = buildDeviceCard(dev);
-        const grid = sectionMap[dev.section];
+      document
+        .querySelectorAll('.card[data-generated="true"]')
+        .forEach(function (n) {
+          n.parentNode && n.parentNode.removeChild(n);
+        });
+      (window.saved || []).forEach(function (dev) {
+        var card = buildDeviceCard(dev);
+        var grid = sectionMap[dev.section];
         if (grid) {
-          const addCard = grid.querySelector('.add-card');
+          var addCard = grid.querySelector(".add-card");
           if (addCard) grid.insertBefore(card, addCard);
           else grid.appendChild(card);
         }
       });
     }
-    
-    // ===== REST base cho servo cửa =====
+    window.renderSavedDevices = renderSavedDevices;
+  </script>
+
+  <!-- BACKEND MODE + PI BASE (dùng chung cho toàn webapp) -->
+  <script>
+    // "firebase" = online (mặc định), "pi" = ghi sang Pi backup
+    window.BACKEND_MODE = window.BACKEND_MODE || "firebase";
+
+    // ĐỔI IP NÀY thành IP Pi của m nếu khác
+    window.PI_BACKEND_BASE =
+      window.PI_BACKEND_BASE || "http://172.20.10.2:5000";
+
+    window.setBackendMode = function (mode) {
+      if (mode !== "firebase" && mode !== "pi") return;
+      window.BACKEND_MODE = mode;
+
+      const subtitle = document.getElementById("subtitle");
+      if (subtitle) {
+        if (mode === "firebase") {
+          subtitle.textContent = "Thiết bị sẵn sàng (Firebase)";
+        } else {
+          subtitle.textContent = "Chế độ OFFLINE (Pi backup)";
+        }
+      }
+      console.log("🔀 BACKEND_MODE =", mode);
+    };
+
+    // Lúc load trang, set lại subtitle theo mode hiện tại
+    document.addEventListener("DOMContentLoaded", function () {
+      window.setBackendMode(window.BACKEND_MODE);
+    });
+  </script>
+
+
+  <!-- SCRIPT 1b: static cards + add-modal -->
+  <script>
     const DOOR_FB_REST_BASE =
       "https://do-an-2-91a3c-default-rtdb.asia-southeast1.firebasedatabase.app";
 
-    // doorKey: 'frontDoor' hoặc 'sideDoor'
-    // isOpen: true = mở / unlock, false = đóng / lock
     async function pushDoorServoState(doorKey, isOpen) {
+      const payload = {
+        state: isOpen ? "open" : "closed",
+        ts: Date.now(),
+      };
+
+      const mode = window.BACKEND_MODE || "firebase";
+      const piBase = window.PI_BACKEND_BASE;
+
       try {
-        const payload = {
-          state: isOpen ? "open" : "closed",
-          ts: Date.now()
-        };
-        await fetch(`${DOOR_FB_REST_BASE}/doors/${doorKey}.json`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        console.log("🚪 Gửi servo:", doorKey, payload);
+        // OFFLINE → gửi sang Pi
+        if (mode === "pi" && piBase) {
+          const res = await fetch(
+            piBase + "/doors/" + encodeURIComponent(doorKey),
+            {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            }
+          );
+          console.log("🚪 Gửi servo (Pi):", doorKey, payload, res.status);
+          return;
+        }
+
+        // Mặc định → Firebase như cũ
+        const res = await fetch(
+          DOOR_FB_REST_BASE + "/doors/" + doorKey + ".json",
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          }
+        );
+        console.log(
+          "🚪 Gửi servo (Firebase):",
+          doorKey,
+          payload,
+          res.status
+        );
       } catch (e) {
         console.error("❌ Lỗi gửi state servo:", e);
       }
     }
-    
-    // initial static cards
+
     function attachStaticHandlers() {
       const pairs = [
-        // [id của card, id span state, key cho servo]
-        ['doorCard','doorState','frontDoor'],   // Front Door
-        ['sconcesCard','sconcesState','sconces'],
-        ['ceilingCard','ceilingState','ceiling'],
-        ['accentCard','accentState','accent'],
-        ['tableCard','tableState','table'],
-        ['sideDoorCard','sideDoorState','sideDoor'] // Side Door
+        ["doorCard", "doorState", "frontDoor"],
+        ["sconcesCard", "sconcesState", "sconces"],
+        ["ceilingCard", "ceilingState", "ceiling"],
+        ["accentCard", "accentState", "accent"],
+        ["tableCard", "tableState", "table"],
+        ["sideDoorCard", "sideDoorState", "sideDoor"],
       ];
 
-      pairs.forEach(([cid,sid,key]) => {
+      pairs.forEach(function (arr) {
+        const cid = arr[0];
+        const sid = arr[1];
+        const key = arr[2];
+
         const el = document.getElementById(cid);
         if (!el) return;
 
-        const offLabel = (cid === 'doorCard') ? 'Locked' :
-                         ((cid === 'sideDoorCard') ? 'Closed' : 'Off');
+        const offLabel =
+          cid === "doorCard"
+            ? "Locked"
+            : cid === "sideDoorCard"
+            ? "Closed"
+            : "Off";
 
-        const toggleFn = () => {
+        const toggleFn = function () {
           blockFirebaseSync();
           const txt = document.getElementById(sid);
-          const on  = !el.classList.contains('on');
-          el.classList.toggle('on');
+          const on = !el.classList.contains("on");
+          el.classList.toggle("on");
 
-          // label khi bật
-          let labelOn = 'On';
-          if (cid === 'doorCard')      labelOn = 'Unlocked'; // cửa trước
-          else if (cid === 'sideDoorCard') labelOn = 'Open'; // cửa hông
+          let labelOn = "On";
+          if (cid === "doorCard") labelOn = "Unlocked";
+          else if (cid === "sideDoorCard") labelOn = "Open";
 
           if (txt) txt.textContent = on ? labelOn : offLabel;
 
-          // 🚪 Nếu là 2 card cửa → đẩy state servo lên Firebase
-          if (cid === 'doorCard') {
-            // front door: open = unlock, closed = lock
-            pushDoorServoState('frontDoor', on);
-          } else if (cid === 'sideDoorCard') {
-            // side door: open/closed
-            pushDoorServoState('sideDoor', on);
+          if (cid === "doorCard") {
+            pushDoorServoState("frontDoor", on);
+          } else if (cid === "sideDoorCard") {
+            pushDoorServoState("sideDoor", on);
           }
         };
 
-        // dùng cùng handler tap + long-press như cũ
         attachPressHandlers(el, { type: key }, toggleFn);
-
         addDeleteBadge(el, { id: cid, name: key });
       });
     }
 
-    
-
-    // handle clicking add-cards to open modal
     function initAddCards() {
-      document.querySelectorAll('.add-card').forEach(el => {
-        el.addEventListener('click', ()=> {
-          const target = el.dataset.targetSection || el.dataset.target || 'entry';
-          document.getElementById('modalType').value = 'light';
-          document.getElementById('modalName').value = '';
-          document.getElementById('modalPin').value = '';
-          const modal = document.getElementById('addModal');
-          modal.style.display = 'flex';
+      document.querySelectorAll(".add-card").forEach(function (el) {
+        el.addEventListener("click", function () {
+          const target =
+            el.dataset.targetSection || el.dataset.target || "entry";
+          document.getElementById("modalType").value = "light";
+          document.getElementById("modalName").value = "";
+          document.getElementById("modalPin").value = "";
+          const modal = document.getElementById("addModal");
+          modal.style.display = "flex";
           modal.dataset.target = target;
         });
       });
 
-      document.getElementById('addModal').addEventListener('click', (e)=>{
-        if (e.target && e.target.id === 'addModal') e.currentTarget.style.display = 'none';
-      });
+      document
+        .getElementById("addModal")
+        .addEventListener("click", function (e) {
+          if (e.target && e.target.id === "addModal")
+            e.currentTarget.style.display = "none";
+        });
 
-      document.getElementById('modalCancel').addEventListener('click', ()=>{
-        document.getElementById('addModal').style.display = 'none';
-      });
+      document
+        .getElementById("modalCancel")
+        .addEventListener("click", function () {
+          document.getElementById("addModal").style.display = "none";
+        });
 
-      document.getElementById('modalAdd').addEventListener('click', ()=>{
-        const type = document.getElementById('modalType').value;
-        const name = document.getElementById('modalName').value.trim();
-        const pin  = document.getElementById('modalPin').value.trim();
-        const target = document.getElementById('addModal').dataset.target || 'entry';
-        if (!name || !pin) { alert('Vui lòng nhập tên & chân GPIO'); return; }
+      document
+        .getElementById("modalAdd")
+        .addEventListener("click", function () {
+          const type =
+            document.getElementById("modalType").value;
+          const name = document
+            .getElementById("modalName")
+            .value.trim();
+          const pin = document
+            .getElementById("modalPin")
+            .value.trim();
+          const target =
+            document.getElementById("addModal").dataset
+              .target || "entry";
 
-        const newDev = {
-          id: (function makeId(){
+          if (!name || !pin) {
+            alert("Vui lòng nhập tên & chân GPIO");
+            return;
+          }
+
+          function makeId() {
             try {
-              if (window.crypto && crypto.randomUUID) return 'dev_' + crypto.randomUUID();
-            } catch(e){}
-            return 'dev_' + Date.now() + '_' + Math.floor(Math.random()*1000000);
-          })(),
-          name,
-          type,
-          pin,
-          section: target,
-          state: false,
-          brightness:  type==='light'      ? 100 : undefined,
-          color:       type==='light'      ? '#ffffff' : undefined,
-          speed:       type==='fan'        ? 1 : undefined,
-          volume:      type==='speaker'    ? 50 : undefined,
-          temperature: type==='thermostat' ? 24 : undefined
-        };
-        if (!Array.isArray(window.saved)) window.saved = [];
-        window.saved.push(newDev);
-        saveAndRefresh(true, true);
-        document.getElementById('addModal').style.display = 'none';
-      });
+              if (window.crypto && crypto.randomUUID)
+                return "dev_" + crypto.randomUUID();
+            } catch (e) {}
+            return (
+              "dev_" +
+              Date.now() +
+              "_" +
+              Math.floor(Math.random() * 1000000)
+            );
+          }
+
+          const newDev = {
+            id: makeId(),
+            name: name,
+            type: type,
+            pin: pin,
+            section: target,
+            state: false,
+            brightness:
+              type === "light" ? 100 : undefined,
+            color:
+              type === "light" ? "#ffffff" : undefined,
+            speed: type === "fan" ? 1 : undefined,
+            volume:
+              type === "speaker" ? 50 : undefined,
+            temperature:
+              type === "thermostat" ? 24 : undefined,
+          };
+
+          if (!Array.isArray(window.saved)) window.saved = [];
+          window.saved.push(newDev);
+          saveAndRefresh(true, true);
+          document.getElementById("addModal").style.display =
+            "none";
+        });
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener("DOMContentLoaded", function () {
       attachStaticHandlers();
       initAddCards();
 
-      window._saveDevices = ()=>localStorage.setItem(STORAGE_KEY, JSON.stringify(window.saved || []));
-      window._clearDevices = ()=>{ window.saved = []; saveAndRefresh(); };
+      window._saveDevices = function () {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify(window.saved || [])
+        );
+      };
+      window._clearDevices = function () {
+        window.saved = [];
+        saveAndRefresh();
+      };
     });
 
-    // --- Chế độ xóa thiết bị --- //
     let deleteMode = false;
-    const deleteModeBtn = document.getElementById('deleteModeBtn');
+    const deleteModeBtn =
+      document.getElementById("deleteModeBtn");
 
-    deleteModeBtn.addEventListener('click', () => {
+    deleteModeBtn.addEventListener("click", function () {
       deleteMode = !deleteMode;
-      deleteModeBtn.classList.toggle('active', deleteMode);
+      deleteModeBtn.classList.toggle("active", deleteMode);
 
-      document.querySelectorAll('.card').forEach(card => {
+      document.querySelectorAll(".card").forEach(function (card) {
+        const badge = card.querySelector(".delete-badge");
         if (deleteMode) {
-          card.classList.add('delete-mode');
-          const badge = card.querySelector('.delete-badge');
-          if (badge) badge.style.display = 'flex';
+          card.classList.add("delete-mode");
+          if (badge) badge.style.display = "flex";
         } else {
-          card.classList.remove('delete-mode');
-          const badge = card.querySelector('.delete-badge');
-          if (badge) badge.style.display = 'none';
+          card.classList.remove("delete-mode");
+          if (badge) badge.style.display = "none";
         }
       });
     });
 
     function addDeleteBadge(card, dev) {
       if (!card) return;
-      if (card.querySelector('.delete-badge')) return;
+      if (card.querySelector(".delete-badge")) return;
 
-      const badge = document.createElement('div');
-      badge.className = 'delete-badge';
-      badge.textContent = '✖';
-      badge.title = 'Xóa thiết bị';
+      const badge = document.createElement("div");
+      badge.className = "delete-badge";
+      badge.textContent = "✖";
+      badge.title = "Xóa thiết bị";
 
-      badge.addEventListener('pointerdown', async (e) => {
-        e.preventDefault && e.preventDefault();
-        e.stopPropagation && e.stopPropagation();
+      badge.addEventListener(
+        "pointerdown",
+        async function (e) {
+          if (e.preventDefault) e.preventDefault();
+          if (e.stopPropagation) e.stopPropagation();
 
-        const name = dev?.name || card.querySelector('strong')?.textContent || 'thiết bị này';
-        const ok = confirm(`Xóa ${name}?`);
-        if (!ok) return;
+          const name =
+            (dev && dev.name) ||
+            (card.querySelector("strong") &&
+              card.querySelector("strong").textContent) ||
+            "thiết bị này";
+          const ok = confirm("Xóa " + name + "?");
+          if (!ok) return;
 
-        const targetId = (dev && dev.id) ? dev.id : (card && card.id ? card.id : null);
+          const targetId =
+            (dev && dev.id) || (card && card.id) || null;
 
-        if (targetId && Array.isArray(window.saved)) {
-          window.saved = window.saved.filter(d => d.id !== targetId);
-        }
-
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(window.saved || []));
-          try { renderSavedDevices(); } catch(err){ console.error('renderSavedDevices lỗi:', err); }
-        } catch(err) {
-          console.error('Lỗi lưu local sau xóa:', err);
-        }
-
-        try {
-          if (typeof window.deleteDeviceFromFirebase === 'function') {
-            await window.deleteDeviceFromFirebase(targetId);
-            console.log('Xóa device trên Firebase via deleteDeviceFromFirebase:', targetId);
-          } else if (typeof window.saveDevicesToFirebase === 'function') {
-            await window.saveDevicesToFirebase(window.saved || []);
-            console.log('Ghi lại toàn bộ danh sách lên Firebase via saveDevicesToFirebase.');
-          } else if (typeof window.saveAndRefresh === 'function') {
-            window.saveAndRefresh(true, true);
-            console.log('Gọi fallback window.saveAndRefresh(true,true)');
+          if (targetId && Array.isArray(window.saved)) {
+            window.saved = window.saved.filter(function (d) {
+              return d.id !== targetId;
+            });
           }
-        } catch (err) {
-          console.error('Lỗi khi sync xóa lên Firebase:', err);
-        }
 
-        try { card.remove(); } catch(_) {}
-      }, { passive: false });
+          try {
+            localStorage.setItem(
+              STORAGE_KEY,
+              JSON.stringify(window.saved || [])
+            );
+            try {
+              renderSavedDevices();
+            } catch (err) {
+              console.error(
+                "renderSavedDevices lỗi:",
+                err
+              );
+            }
+          } catch (err2) {
+            console.error("Lỗi lưu local sau xóa:", err2);
+          }
+
+          try {
+            if (
+              typeof window.deleteDeviceFromFirebase ===
+              "function"
+            ) {
+              await window.deleteDeviceFromFirebase(targetId);
+              console.log(
+                "Xóa device trên Firebase:",
+                targetId
+              );
+            } else if (
+              typeof window.saveDevicesToFirebase ===
+              "function"
+            ) {
+              await window.saveDevicesToFirebase(
+                window.saved || []
+              );
+              console.log(
+                "Ghi lại toàn bộ danh sách lên Firebase."
+              );
+            } else if (
+              typeof window.saveAndRefresh === "function"
+            ) {
+              window.saveAndRefresh(true, true);
+            }
+          } catch (err3) {
+            console.error(
+              "Lỗi khi sync xóa lên Firebase:",
+              err3
+            );
+          }
+
+          try {
+            card.remove();
+          } catch (_) {}
+        },
+        { passive: false }
+      );
 
       card.appendChild(badge);
-      if (deleteMode) badge.style.display = 'flex';
+      if (deleteMode) badge.style.display = "flex";
     }
   </script>
 
-  <!-- CHO PHÉP CLIENT ĐẨY LỆNH VOICE -->
+  <!-- Cho phép client đẩy lệnh voice -->
   <script>
     window.APP_CLIENT_PUSH_ENABLED = true;
   </script>
 
-  <!-- ====== SCRIPT 2: Voice UI (ghi âm + gửi Flask) ====== -->
+  <!-- SCRIPT 2: Voice UI + MediaRecorder -->
   <script>
-    function normalizeSpokenText(t = "") {
+    function normalizeSpokenText(t) {
       t = (t || "")
         .toLowerCase()
-        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
         .replace(/đ/g, "d")
         .replace(/\s+/g, " ")
         .trim();
@@ -1343,46 +1937,65 @@
         .replace(/\bmo den\b/g, "bat den")
         .replace(/\btat het\b/g, "tat tat ca")
         .replace(/\bbat het\b/g, "bat tat ca")
-        .replace(/\bden tron\b/g, "den trong");
+        .replace(/\bden tron\b/g, "den trong")
+        .replace(/\bthu gian\b/g, "relax")
+        .replace(/\btap trung\b/g, "focus")
+        .replace(/\bparty\b/g, "party")
+        .replace(/\bban dem\b/g, "night")
+        .replace(/\bdi ngu\b/g, "night");
       return t;
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const VOICE_ENDPOINT = "https://christinia-sorediate-fred.ngrok-free.dev/voice";
+    document.addEventListener("DOMContentLoaded", function () {
+      const VOICE_ENDPOINT =
+        "https://christinia-sorediate-fred.ngrok-free.dev/voice";
       const VOICE_TOKEN = null;
-      const BTN  = document.getElementById("voiceBtn");
+
+      const BTN = document.getElementById("voiceBtn");
       const PILL = document.getElementById("voicePill");
 
       if (!BTN || !PILL) {
-        console.error("Voice UI missing (#voiceBtn / #voicePill)");
+        console.error("Voice UI missing");
         return;
       }
 
-      let media, rec, chunks = [], isRecording = false;
+      let mediaStream = null;
+      let mediaRecorder = null;
+      let chunks = [];
+      let isRecording = false;
 
-      function pill(msg, kind = "info", holdMs = null) {
+      function pill(msg, kind, holdMs) {
+        if (kind === undefined) kind = "info";
+        if (holdMs === undefined)
+          holdMs = kind === "err" ? 4000 : 2200;
+
         PILL.textContent = msg || "";
         PILL.classList.add("show");
         PILL.style.borderColor =
-          kind === "ok"  ? "#00e6a8" :
-          kind === "err" ? "#ff6666" :
-                           "rgba(0,212,255,.25)";
-        clearTimeout(pill._t);
-        pill._t = setTimeout(
-          () => PILL.classList.remove("show"),
-          holdMs != null ? holdMs : (kind === "err" ? 4000 : 2200)
-        );
+          kind === "ok"
+            ? "#00e6a8"
+            : kind === "err"
+            ? "#ff6666"
+            : "rgba(0,212,255,.25)";
+        if (pill._t) clearTimeout(pill._t);
+        pill._t = setTimeout(function () {
+          PILL.classList.remove("show");
+        }, holdMs);
       }
 
       function bestMime() {
         const list = [
-          "audio/mp4",
           "audio/webm;codecs=opus",
           "audio/webm",
-          "audio/ogg;codecs=opus"
+          "audio/ogg;codecs=opus",
+          "audio/mp4",
         ];
-        for (const m of list) {
-          if (window.MediaRecorder && MediaRecorder.isTypeSupported(m)) return m;
+        if (!window.MediaRecorder) return "";
+        for (let i = 0; i < list.length; i++) {
+          const m = list[i];
+          try {
+            if (MediaRecorder.isTypeSupported(m)) return m;
+          } catch (e) {}
         }
         return "";
       }
@@ -1392,7 +2005,10 @@
           pill("⚠️ Cần HTTPS hoặc localhost", "err", 5000);
           throw new Error("Not secure");
         }
-        if (!navigator.mediaDevices?.getUserMedia) {
+        if (
+          !navigator.mediaDevices ||
+          !navigator.mediaDevices.getUserMedia
+        ) {
           pill("⚠️ Trình duyệt không hỗ trợ micro", "err", 5000);
           throw new Error("No getUserMedia");
         }
@@ -1404,9 +2020,13 @@
 
       async function getPermissionState() {
         try {
-          const s = await navigator.permissions.query({ name: "microphone" });
+          if (!navigator.permissions || !navigator.permissions.query)
+            return "unknown";
+          const s = await navigator.permissions.query({
+            name: "microphone",
+          });
           return s.state;
-        } catch {
+        } catch (e) {
           return "unknown";
         }
       }
@@ -1414,49 +2034,96 @@
       async function startRecord() {
         try {
           await checkPrereq();
+
           const state = await getPermissionState();
           if (state === "denied") {
-            pill("🚫 Micro bị chặn. Bấm 🔒 → Allow microphone.", "err", 5000);
+            pill(
+              "🚫 Micro bị chặn. Bấm biểu tượng 🔒 trên thanh địa chỉ → Allow microphone.",
+              "err",
+              5000
+            );
             return;
           }
 
           const mime = bestMime();
           if (!mime) {
-            pill("⚠️ Không tìm thấy định dạng audio phù hợp", "err");
+            pill(
+              "⚠️ Không tìm thấy định dạng audio phù hợp",
+              "err",
+              4000
+            );
             return;
           }
 
-          media = await navigator.mediaDevices.getUserMedia({
-            audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true }
+          mediaStream =
+            await navigator.mediaDevices.getUserMedia({
+              audio: {
+                channelCount: 1,
+                echoCancellation: true,
+                noiseSuppression: true,
+              },
+            });
+
+          mediaRecorder = new MediaRecorder(mediaStream, {
+            mimeType: mime,
+            audioBitsPerSecond: 128000,
           });
 
-          rec = new MediaRecorder(media, { mimeType: mime, audioBitsPerSecond: 128000 });
           chunks = [];
-          rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
-          rec.onerror = e => {
+
+          mediaRecorder.ondataavailable = function (e) {
+            if (e.data && e.data.size) chunks.push(e.data);
+          };
+          mediaRecorder.onerror = function (e) {
             console.error("MediaRecorder error:", e);
             pill("Lỗi MediaRecorder", "err", 4000);
           };
-          rec.onstart  = () => pill("🎙️ Đang nghe… chạm lần nữa để dừng");
-          rec.onstop   = () => {
-            const blob = new Blob(chunks, { type: rec.mimeType || "audio/webm" });
+          mediaRecorder.onstart = function () {
+            pill("🎙️ Đang nghe… chạm lần nữa để dừng");
+          };
+          mediaRecorder.onstop = function () {
+            const blob = new Blob(chunks, {
+              type: mediaRecorder.mimeType || "audio/webm",
+            });
             sendBlob(blob);
           };
 
-          rec.start();
+          mediaRecorder.start();
           isRecording = true;
           BTN.classList.add("recording");
-          startRecord._auto && clearTimeout(startRecord._auto);
-          startRecord._auto = setTimeout(stopRecord, 8000);
+
+          if (startRecord._auto) clearTimeout(startRecord._auto);
+          startRecord._auto = setTimeout(function () {
+            if (isRecording) stopRecord();
+          }, 8000);
         } catch (e) {
           console.error(e);
-          pill("Gửi audio lỗi: " + ((e && e.message) ? e.message : "network"), "err", 4500);
+          pill(
+            "Gửi audio lỗi: " +
+              (e && e.message ? e.message : "network"),
+            "err",
+            4500
+          );
         }
       }
 
       function stopRecord() {
-        try { rec && rec.state === "recording" && rec.stop(); } catch {}
-        try { media && media.getTracks().forEach(t => t.stop()); } catch {}
+        try {
+          if (
+            mediaRecorder &&
+            mediaRecorder.state === "recording"
+          )
+            mediaRecorder.stop();
+        } catch (e) {}
+        try {
+          if (mediaStream) {
+            mediaStream
+              .getTracks()
+              .forEach(function (t) {
+                t.stop();
+              });
+          }
+        } catch (e2) {}
         isRecording = false;
         BTN.classList.remove("recording");
       }
@@ -1465,278 +2132,433 @@
         try {
           pill("⬆️ Đang gửi tới AI…");
 
-          const file = new File(
-            [blob],
-            blob.type.includes("mp4") ? "voice.m4a" : "voice.webm",
-            { type: blob.type }
-          );
+          const fileName = blob.type && blob.type.indexOf("mp4") >= 0
+            ? "voice.m4a"
+            : "voice.webm";
+
+          const file = new File([blob], fileName, {
+            type: blob.type,
+          });
 
           const fd = new FormData();
           fd.append("audio", file);
           fd.append("execute", "1");
-          if (VOICE_TOKEN) fd.append("token", VOICE_TOKEN);
 
-          const res  = await fetch(VOICE_ENDPOINT, { method: "POST", body: fd });
-          const data = await res.json().catch(() => ({}));
+          const headers = { "X-Execute": "1" };
+          if (VOICE_TOKEN) headers["X-Voice-Token"] = VOICE_TOKEN;
+          if (window.VOICE_CLIENT_ID)
+            headers["X-Client-Id"] = window.VOICE_CLIENT_ID;
+
+          const res = await fetch(VOICE_ENDPOINT, {
+            method: "POST",
+            body: fd,
+            headers: headers,
+          });
+
+          let data = {};
+          try {
+            data = await res.json();
+          } catch (e) {
+            data = {};
+          }
 
           if (!res.ok) {
-            pill("AI lỗi: " + (((data && data.message) || res.status)), "err", 5000);
+            pill(
+              "AI lỗi: " +
+                (data && data.message
+                  ? data.message
+                  : res.status),
+              "err",
+              5000
+            );
             return;
           }
 
-          const text = (((data && data.text) || "")).trim();
-          let cmd  = (data && data.command) || null;
+          const text = (data && data.text ? data.text : "").trim();
+          let cmd = data && data.command ? data.command : null;
 
-          // thêm raw_text cho command & từng phần tử multi
           if (cmd) {
             const folded = normalizeSpokenText(text);
             if (!cmd.raw_text) cmd.raw_text = folded;
             if (Array.isArray(cmd.multi)) {
-              cmd.multi = cmd.multi.map(c => ({
-                ...c,
-                raw_text: c.raw_text || folded
-              }));
+              cmd.multi = cmd.multi.map(function (c) {
+                return Object.assign({}, c, {
+                  raw_text: c.raw_text || folded,
+                });
+              });
             }
           }
 
-          pill(text ? `🗣️ "${text}"` : "Đã xử lý xong", "ok");
-          console.log("VOICE→CMD:", cmd);
+          let pillMsg = text
+            ? '🗣️ "' + text + '"'
+            : "Đã xử lý xong";
+          if (data && data.scheduled && data.scheduled.label) {
+            pillMsg += " · ⏱ " + data.scheduled.label;
+          }
+          pill(pillMsg, "ok");
+          console.log(
+            "VOICE→CMD:",
+            cmd,
+            data && data.scheduled ? data.scheduled : null
+          );
 
           if (cmd && window.APP_CLIENT_PUSH_ENABLED === true) {
-            // ===== MULTI-COMMAND (tắt hết / bật hết) =====
             if (Array.isArray(cmd.multi) && cmd.multi.length) {
               console.log("VOICE MULTI:", cmd.multi);
-              if (typeof window.applyVoiceCommandToFirebase === "function") {
+              if (
+                typeof window.applyVoiceCommandToFirebase ===
+                "function"
+              ) {
                 for (const c of cmd.multi) {
                   try {
                     await window.applyVoiceCommandToFirebase(c);
                   } catch (e) {
-                    console.error("applyVoiceCommandToFirebase multi error:", e);
+                    console.error(
+                      "applyVoiceCommandToFirebase multi error:",
+                      e
+                    );
                   }
                 }
               }
               return;
             }
 
-            // ===== SINGLE COMMAND =====
-            if (typeof window.applyVoiceCommandToFirebase === "function") {
+            if (
+              typeof window.applyVoiceCommandToFirebase ===
+              "function"
+            ) {
               try {
                 await window.applyVoiceCommandToFirebase(cmd);
               } catch (e) {
-                console.error("applyVoiceCommandToFirebase error:", e);
+                console.error(
+                  "applyVoiceCommandToFirebase error:",
+                  e
+                );
               }
             }
           }
-
         } catch (e) {
           console.error("VOICE fetch failed:", e);
-          pill("Gửi audio lỗi: " + (e?.message || "network"), "err", 4500);
+          pill(
+            "Gửi audio lỗi: " +
+              (e && e.message ? e.message : "network"),
+            "err",
+            4500
+          );
         } finally {
-          try { media && media.getTracks().forEach(t => t.stop()); } catch {}
+          try {
+            if (mediaStream) {
+              mediaStream
+                .getTracks()
+                .forEach(function (t) {
+                  t.stop();
+                });
+            }
+          } catch (e2) {}
           isRecording = false;
           BTN.classList.remove("recording");
         }
       }
 
-      const onBtn = ev => {
-        ev.preventDefault();
-        isRecording ? stopRecord() : startRecord();
-      };
-
-      if (window.PointerEvent) {
-        BTN.addEventListener("pointerup", onBtn, { passive: false });
-      } else {
-        BTN.addEventListener("click", onBtn, { passive: false });
+      function onBtn(ev) {
+        if (ev && ev.preventDefault) ev.preventDefault();
+        if (isRecording) stopRecord();
+        else startRecord();
       }
 
-      setTimeout(() => pill("Nhấn 🎤 để nói…"), 900);
+      if (window.PointerEvent) {
+        BTN.addEventListener("pointerup", onBtn, {
+          passive: false,
+        });
+      } else {
+        BTN.addEventListener("click", onBtn, {
+          passive: false,
+        });
+      }
+
+      setTimeout(function () {
+        pill("Nhấn 🎤 để nói…");
+      }, 900);
     });
   </script>
 
-  <!-- ====== SCRIPT 3: mapping giọng nói → device (findDeviceForVoice) ====== -->
+  <!-- SCRIPT 3: mapping giọng nói → device -->
   <script>
-    function vnFold(s=''){
-      return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-              .toLowerCase().replace(/đ/g,'d')
-              .replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();
+    function vnFold(s) {
+      s = s || "";
+      return s
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/đ/g, "d")
+        .replace(/[^a-z0-9 ]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
     }
+
     const SECTION_SYNS = {
-      entry:   ['entry','cua','cua vao','hanh lang','hall','sanh'],
-      living:  ['living','living room','phong khach'],
-      kitchen: ['kitchen','bep']
+      entry: ["entry", "cua", "cua vao", "hanh lang", "hall", "sanh"],
+      living: ["living", "living room", "phong khach"],
+      kitchen: ["kitchen", "bep"],
     };
-    function sectionHintScore(raw, dev){
+
+    function sectionHintScore(raw, dev) {
       const t = vnFold(raw);
       const syns = SECTION_SYNS[dev.section] || [];
-      return syns.some(k => t.includes(vnFold(k))) ? 0.5 : 0;
+      return syns.some(function (k) {
+        return t.indexOf(vnFold(k)) >= 0;
+      })
+        ? 0.5
+        : 0;
     }
-    function tokenOverlapScore(a, b){
-      const A = new Set(vnFold(a).split(' ').filter(Boolean));
-      const B = new Set(vnFold(b).split(' ').filter(Boolean));
+
+    function tokenOverlapScore(a, b) {
+      const A = new Set(vnFold(a).split(" ").filter(Boolean));
+      const B = new Set(vnFold(b).split(" ").filter(Boolean));
       if (!A.size || !B.size) return 0;
-      let inter = 0; for (const w of B) if (A.has(w)) inter++;
+      let inter = 0;
+      B.forEach(function (w) {
+        if (A.has(w)) inter++;
+      });
       return inter / B.size;
     }
-    function nameHitScore(raw, candidate){
-      const r = vnFold(raw), c = vnFold(candidate);
+
+    function nameHitScore(raw, candidate) {
+      const r = vnFold(raw);
+      const c = vnFold(candidate);
       if (!c) return 0;
       let s = 0;
-      if (r.includes(c)) s += 2.0;
+      if (r.indexOf(c) >= 0) s += 2;
       s += tokenOverlapScore(raw, candidate);
       return s;
     }
-    function areaToSection(area = null, raw = '') {
-      const t = vnFold(((area || '') + ' ' + (raw || '')));
-      if (t.includes('living') || t.includes('phong khach')) return 'living';
-      if (t.includes('kitchen') || t.includes('bep'))        return 'kitchen';
-      if (t.includes('entry') || t.includes('cua') ||
-          t.includes('cua vao') || t.includes('hanh lang') ||
-          t.includes('hall') || t.includes('sanh'))          return 'entry';
+
+    function areaToSection(area, raw) {
+      area = area || "";
+      raw = raw || "";
+      const t = vnFold(area + " " + raw);
+      if (t.indexOf("living") >= 0 || t.indexOf("phong khach") >= 0)
+        return "living";
+      if (t.indexOf("kitchen") >= 0 || t.indexOf("bep") >= 0)
+        return "kitchen";
+      if (
+        t.indexOf("entry") >= 0 ||
+        t.indexOf("cua") >= 0 ||
+        t.indexOf("cua vao") >= 0 ||
+        t.indexOf("hanh lang") >= 0 ||
+        t.indexOf("hall") >= 0 ||
+        t.indexOf("sanh") >= 0
+      )
+        return "entry";
       return null;
     }
 
-    function findDeviceForVoice(cmd){
+    function findDeviceForVoice(cmd) {
       const raw = (cmd && cmd.raw_text) || "";
 
-      // ===== 1️⃣ LỆNH "BẬT TẤT CẢ" / "TẮT TẤT CẢ" =====
-      if (cmd && (cmd.action === "on" || cmd.action === "off") && !cmd.device_id){
-        const list = (window.saved || []).filter(d => d.type === "light");
-        if (list.length > 0){
+      if (
+        cmd &&
+        (cmd.action === "on" || cmd.action === "off") &&
+        !cmd.device_id
+      ) {
+        const list = (window.saved || []).filter(function (d) {
+          return d.type === "light";
+        });
+        if (list.length > 0) {
           return {
             multi_override: true,
-            devices: list
+            devices: list,
           };
         }
       }
 
-      // ===== 2️⃣ ƯU TIÊN SERVER GỬI device_id =====
       if (cmd && cmd.device_id && Array.isArray(window.saved)) {
-        const direct = window.saved.find(d => d.id === cmd.device_id);
+        const direct = window.saved.find(function (d) {
+          return d.id === cmd.device_id;
+        });
         if (direct) return direct;
       }
 
-      // ===== 3️⃣ Fallback fuzzy matching =====
-      const sect = areaToSection((cmd && cmd.area) || null, raw);
-      const wantType =
-        (cmd && (cmd.device === 'Light' || cmd.device === 'NeoPixel')) ? 'light'
-        : (cmd && cmd.device) ? cmd.device.toLowerCase()
-        : null;
+      const sect = areaToSection(cmd && cmd.area, raw);
+      let wantType = null;
+      if (cmd && cmd.device === "Light") wantType = "light";
+      else if (cmd && cmd.device === "NeoPixel") wantType = "light";
+      else if (cmd && cmd.device) wantType = cmd.device.toLowerCase();
 
-      let best = null, bestScore = 0;
+      let best = null;
+      let bestScore = 0;
+      const SCORE_MIN = 0.4;
 
-      for (const dev of (window.saved || [])){
-        const cands = [dev.name].concat(Array.isArray(dev.aliases)? dev.aliases : []);
+      (window.saved || []).forEach(function (dev) {
+        const cands = [dev.name].concat(
+          Array.isArray(dev.aliases) ? dev.aliases : []
+        );
         let score = 0;
-        for (const cand of cands) score = Math.max(score, nameHitScore(raw, cand));
+        cands.forEach(function (cand) {
+          score = Math.max(score, nameHitScore(raw, cand));
+        });
         if (wantType && dev.type === wantType) score += 0.25;
         score += sectionHintScore(raw, dev);
-        if (score > bestScore){ bestScore = score; best = dev; }
-      }
+        if (score > bestScore) {
+          bestScore = score;
+          best = dev;
+        }
+      });
 
-      if (!best || bestScore < 0.6){
-        const area = (cmd?.area || '').toLowerCase();
-        const sect2 = area.includes('living') ? 'living' :
-                      area.includes('kitchen') ? 'kitchen' :
-                      area.includes('entry') ? 'entry' : null;
-        const pool = sect2 ? (window.saved||[]).filter(d => d.section === sect2) : (window.saved||[]);
-        const pool2 = wantType ? pool.filter(d => d.type === wantType) : pool;
-        best = pool2[0] || (window.saved||[]).find(d => d.type === 'light') || null;
+      if (!best || bestScore < SCORE_MIN) {
+        const area = (cmd && cmd.area ? cmd.area : "").toLowerCase();
+        let sect2 = null;
+        if (area.indexOf("living") >= 0) sect2 = "living";
+        else if (area.indexOf("kitchen") >= 0) sect2 = "kitchen";
+        else if (area.indexOf("entry") >= 0) sect2 = "entry";
+
+        const pool = sect2
+          ? (window.saved || []).filter(function (d) {
+              return d.section === sect2;
+            })
+          : window.saved || [];
+
+        const pool2 = wantType
+          ? pool.filter(function (d) {
+              return d.type === wantType;
+            })
+          : pool;
+
+        best =
+          pool2[0] ||
+          (window.saved || []).find(function (d) {
+            return d.type === "light";
+          }) ||
+          null;
       }
 
       return best;
     }
-
   </script>
 
-  <!-- ====== SCRIPT 4: colorNameToHex ====== -->
+  <!-- SCRIPT 4: colorNameToHex -->
   <script>
-    function colorNameToHex(name){
+    function colorNameToHex(name) {
       if (!name) return null;
       let s = String(name).trim();
 
       const hex3 = /^#([0-9a-fA-F]{3})$/;
       const hex6 = /^#([0-9a-fA-F]{6})$/;
+
       if (hex6.test(s)) return s.toLowerCase();
       if (hex3.test(s)) {
         const m = s.match(hex3)[1];
-        return ('#' + m[0]+m[0] + m[1]+m[1] + m[2]+m[2]).toLowerCase();
+        return (
+          "#" +
+          m[0] +
+          m[0] +
+          m[1] +
+          m[1] +
+          m[2] +
+          m[2]
+        ).toLowerCase();
       }
 
-      const rgb = /^rgba?\s*\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})/i;
+      const rgb =
+        /^rgba?\s*\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})/i;
       const mr = s.match(rgb);
       if (mr) {
-        const r = Math.max(0, Math.min(255, parseInt(mr[1],10)));
-        const g = Math.max(0, Math.min(255, parseInt(mr[2],10)));
-        const b = Math.max(0, Math.min(255, parseInt(mr[3],10)));
-        const to2 = v => v.toString(16).padStart(2,'0');
-        return '#' + to2(r) + to2(g) + to2(b);
+        const r = Math.max(
+          0,
+          Math.min(255, parseInt(mr[1], 10))
+        );
+        const g = Math.max(
+          0,
+          Math.min(255, parseInt(mr[2], 10))
+        );
+        const b = Math.max(
+          0,
+          Math.min(255, parseInt(mr[3], 10))
+        );
+        const to2 = function (v) {
+          return v.toString(16).padStart(2, "0");
+        };
+        return "#" + to2(r) + to2(g) + to2(b);
       }
 
-      s = s.replace(/^màu\s+/i, '').replace(/^mau\s+/i,'');
-      const fold = (t) => t.normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-                         .toLowerCase().replace(/đ/g,'d').trim();
+      s = s.replace(/^màu\s+/i, "").replace(/^mau\s+/i, "");
+
+      function fold(t) {
+        return t
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase()
+          .replace(/đ/g, "d")
+          .trim();
+      }
+
       const k = fold(s);
 
       const MAP = {
-        'red':'#ff0000', 'do':'#ff0000', 'do tuoi':'#ff0000',
-        'green':'#00ff00', 'xanh la':'#00ff00', 'la':'#00ff00',
-        'blue':'#0000ff', 'xanh duong':'#0000ff', 'xanh lam':'#0000ff', 'xanh nuoc bien':'#0000ff',
-        'yellow':'#ffff00', 'vang':'#ffff00',
-        'white':'#ffffff', 'trang':'#ffffff',
-        'warm white':'#fff3e0', 'trang am':'#fff3e0', 'am':'#fff3e0',
-        'cool white':'#e0f7ff', 'trang lanh':'#e0f7ff', 'lanh':'#e0f7ff',
-        'orange':'#ffa500', 'cam':'#ffa500',
-        'purple':'#8000ff', 'tim':'#8000ff',
-        'pink':'#ff69b4', 'hong':'#ff69b4',
-        'cyan':'#00ffff', 'xanh ngoc':'#00ffff', 'ngoc':'#00ffff', 'aqua':'#00ffff',
-        'magenta':'#ff00ff', 'tim hong':'#ff00ff', 'fuchsia':'#ff00ff',
-        'amber':'#ffc107', 'ho phach':'#ffc107',
-        'teal':'#008080', 'luc lam':'#008080',
-        'lime':'#cddc39', 'vang chanh':'#cddc39',
-        'brown':'#795548', 'nau':'#795548',
-        'black':'#000000', 'den':'#000000'
+        red: "#ff0000",
+        do: "#ff0000",
+        "do tuoi": "#ff0000",
+        green: "#00ff00",
+        "xanh la": "#00ff00",
+        la: "#00ff00",
+        blue: "#0000ff",
+        "xanh duong": "#0000ff",
+        "xanh lam": "#0000ff",
+        "xanh nuoc bien": "#0000ff",
+        yellow: "#ffff00",
+        vang: "#ffff00",
+        white: "#ffffff",
+        trang: "#ffffff",
+        "warm white": "#fff3e0",
+        "trang am": "#fff3e0",
+        am: "#fff3e0",
+        "cool white": "#e0f7ff",
+        "trang lanh": "#e0f7ff",
+        lanh: "#e0f7ff",
+        orange: "#ffa500",
+        cam: "#ffa500",
+        purple: "#8000ff",
+        tim: "#8000ff",
+        pink: "#ff69b4",
+        hong: "#ff69b4",
+        cyan: "#00ffff",
+        "xanh ngoc": "#00ffff",
+        ngoc: "#00ffff",
+        aqua: "#00ffff",
+        magenta: "#ff00ff",
+        "tim hong": "#ff00ff",
+        fuchsia: "#ff00ff",
+        amber: "#ffc107",
+        "ho phach": "#ffc107",
+        teal: "#008080",
+        "luc lam": "#008080",
+        lime: "#cddc39",
+        "vang chanh": "#cddc39",
+        brown: "#795548",
+        nau: "#795548",
+        black: "#000000",
+        den: "#000000",
       };
 
       if (MAP[k]) return MAP[k];
-      if (k === 'xanh') return '#0000ff';
+      if (k === "xanh") return "#0000ff";
       return null;
     }
   </script>
 
-  <!-- ====== SCRIPT 5: áp lệnh giọng nói vào device + Firebase ====== -->
+  <!-- SCRIPT 5: applyVoiceCommandToFirebase -->
   <script>
-    /** Áp lệnh giọng nói + support delay */
-    window.applyVoiceCommandToFirebase = async function(cmd){
-  try {
-    // 1️⃣ ưu tiên thử kích hoạt scene từ giọng nói
-    if (window.tryApplySceneFromVoice && window.tryApplySceneFromVoice(cmd)) {
-      console.log("VOICE → Scene activated, skip per-device control");
-      return;
-    }
-    const dev = (typeof findDeviceForVoice === 'function') ? findDeviceForVoice(cmd) : null;
-        // Xử lý lệnh bật/tắt tất cả (multi_override)
-        if (dev && dev.multi_override === true && Array.isArray(dev.devices)) {
-          console.log("VOICE → MULTI OVERRIDE:", dev.devices);
-
-          for (const d of dev.devices) {
-            const fake = {
-              ...cmd,
-              device_id: d.id
-            };
-            try {
-              await window.applyVoiceCommandToFirebase(fake);
-            } catch (e) {
-              console.error("applyVoiceCommandToFirebase multi-override lỗi:", e);
-            }
-          }
-          return; // ngăn chạy tiếp
-        }
-        
-        if (!dev){ console.warn("Không tìm thấy thiết bị phù hợp:", cmd); return; }
-        const card = document.getElementById(dev.id);
-
-        const clamp = (v,min,max)=> Math.max(min, Math.min(max, v));
-        const n = (x, def=0) => (typeof x === 'number' && isFinite(x)) ? x : def;
+    window.applyVoiceCommandToFirebase = async function (cmd) {
+      try {
+        const clamp = function (v, min, max) {
+          return Math.max(min, Math.min(max, v));
+        };
+        const n = function (x, def) {
+          if (def === undefined) def = 0;
+          return typeof x === "number" && isFinite(x)
+            ? x
+            : def;
+        };
 
         function getDelayMs(c) {
           if (!c) return 0;
@@ -1745,78 +2567,292 @@
             c.after_seconds,
             c.delay,
             c.wait_seconds,
-            c.wait
+            c.wait,
           ];
           for (let v of cand) {
-            if (typeof v === 'string') {
+            if (typeof v === "string") {
               const m = v.match(/(\d+(\.\d+)?)/);
               if (m) v = parseFloat(m[1]);
             }
-            if (typeof v === 'number' && isFinite(v) && v > 0) {
+            if (
+              typeof v === "number" &&
+              isFinite(v) &&
+              v > 0
+            ) {
               return v * 1000;
             }
           }
           return 0;
         }
 
-        async function applyNow() {
-          if (cmd.action === 'on')  dev.state = true;
-          if (cmd.action === 'off') dev.state = false;
+        // DOOR voice (simple)
+        if (cmd && cmd.type === "door" && cmd.door_id) {
+          const delayMs = getDelayMs(cmd);
 
-          if (dev.type === 'light') {
-            if (typeof cmd.brightness === 'number') {
-              const cur = n(dev.brightness, dev.state ? 100 : 0);
+          const runDoor = async function () {
+            const doorId = cmd.door_id;
+            const action = cmd.action || "toggle";
+
+            const cardId =
+              doorId === "sideDoor" ? "sideDoorCard" : "doorCard";
+            const stateId =
+              doorId === "sideDoor"
+                ? "sideDoorState"
+                : "doorState";
+
+            const span = document.getElementById(stateId);
+            const card = document.getElementById(cardId);
+
+            const text = (span && span.textContent
+              ? span.textContent
+              : ""
+            ).toLowerCase();
+            const isOpen =
+              text.indexOf("unlock") >= 0 ||
+              text.indexOf("open") >= 0 ||
+              text.indexOf("mở") >= 0;
+            const isClosed =
+              text.indexOf("lock") >= 0 ||
+              text.indexOf("closed") >= 0 ||
+              text.indexOf("đóng") >= 0;
+
+            let wantOpen;
+            if (action === "open" || action === "unlock")
+              wantOpen = true;
+            else if (action === "close" || action === "lock")
+              wantOpen = false;
+            else {
+              if (isClosed && !isOpen) wantOpen = true;
+              else wantOpen = false;
+            }
+
+            if (span)
+              span.textContent = wantOpen
+                ? doorId === "sideDoor"
+                  ? "Open"
+                  : "Unlocked"
+                : doorId === "sideDoor"
+                ? "Closed"
+                : "Locked";
+            if (card) {
+              if (wantOpen) card.classList.add("on");
+              else card.classList.remove("on");
+            }
+
+            if (typeof pushDoorServoState === "function") {
+              try {
+                await pushDoorServoState(doorId, wantOpen);
+              } catch (e) {
+                console.error("pushDoorServoState error:", e);
+              }
+            }
+          };
+
+          if (delayMs > 0) {
+            console.log("⏱ Delay DOOR", delayMs, "ms");
+            setTimeout(function () {
+              runDoor().catch(function (e) {
+                console.error("runDoor(door) error:", e);
+              });
+            }, delayMs);
+          } else {
+            await runDoor();
+          }
+          return;
+        }
+
+        // SCENE
+        if (cmd && cmd.type === "scene") {
+          const action = cmd.action || "apply";
+          const sceneId = cmd.scene_id || null;
+          const delayMs = getDelayMs(cmd);
+
+          const runScene = async function () {
+            if (action === "clear" || (!sceneId && action !== "apply")) {
+              console.log("VOICE → SCENE CLEAR:", cmd);
+              if (typeof window.clearCurrentScene === "function") {
+                // applyAllOff: muốn clear là tắt hết hay chỉ bỏ scene, tùy ông
+                window.clearCurrentScene({ applyAllOff: false });
+              } else if (typeof window.applySceneById === "function") {
+                await window.applySceneById(null);
+              }
+              return;
+            }
+
+            if (sceneId) {
+              console.log("VOICE → SCENE APPLY:", sceneId, cmd);
+              if (typeof window.setCurrentScene === "function") {
+                // vừa update ui_state/currentScene, vừa apply device
+                window.setCurrentScene(sceneId, { applyDevices: true });
+              } else if (typeof window.applySceneById === "function") {
+                await window.applySceneById(sceneId);
+              }
+            }
+          };
+
+          if (delayMs > 0) {
+            console.log("⏱ Delay SCENE", delayMs, "ms");
+            setTimeout(function () {
+              runScene().catch(function (e) {
+                console.error("runScene(scene) error:", e);
+              });
+            }, delayMs);
+          } else {
+            await runScene();
+          }
+          return;
+        }
+
+        const dev =
+          typeof findDeviceForVoice === "function"
+            ? findDeviceForVoice(cmd)
+            : null;
+
+        if (
+          dev &&
+          dev.multi_override === true &&
+          Array.isArray(dev.devices)
+        ) {
+          console.log("VOICE → MULTI OVERRIDE:", dev.devices);
+          for (const d of dev.devices) {
+            const fake = Object.assign({}, cmd, {
+              device_id: d.id,
+            });
+            try {
+              await window.applyVoiceCommandToFirebase(fake);
+            } catch (e) {
+              console.error(
+                "applyVoiceCommandToFirebase multi-override lỗi:",
+                e
+              );
+            }
+          }
+          return;
+        }
+
+        if (!dev) {
+          console.warn("Không tìm thấy thiết bị phù hợp:", cmd);
+          return;
+        }
+
+        const card = document.getElementById(dev.id);
+
+        async function applyNow() {
+          if (cmd.action === "on") dev.state = true;
+          if (cmd.action === "off") dev.state = false;
+
+          if (dev.type === "light") {
+            if (typeof cmd.brightness === "number") {
+              const cur = n(
+                dev.brightness,
+                dev.state ? 100 : 0
+              );
               let val = cmd.brightness;
-              if (cmd.brightness_op === 'inc') val = cur + val;
-              if (cmd.brightness_op === 'dec') val = cur - val;
+              if (cmd.brightness_op === "inc") val = cur + val;
+              if (cmd.brightness_op === "dec") val = cur - val;
               dev.brightness = clamp(Math.round(val), 0, 100);
               dev.state = dev.brightness > 0;
             }
+
             if (cmd.color) {
-              const hx = (typeof colorNameToHex === 'function') ? colorNameToHex(cmd.color) : null;
-              if (hx) dev.color = hx;
+              const hx = colorNameToHex(cmd.color);
+              if (hx) {
+                dev.color = hx;
+                dev.rainbow = false;
+                dev.state = true;
+              }
             }
-            if (cmd.action === 'on' && (dev.brightness == null || dev.brightness === 0)) dev.brightness = 100;
-            if (cmd.action === 'off') dev.brightness = 0;
+
+            if (cmd.effect === "rainbow_on") {
+              dev.rainbow = true;
+              if (!dev.brightness) dev.brightness = 100;
+              dev.state = true;
+            }
+            if (cmd.effect === "rainbow_off") {
+              dev.rainbow = false;
+            }
+
+            if (
+              cmd.action === "on" &&
+              (!dev.brightness || dev.brightness === 0)
+            ) {
+              dev.brightness = 100;
+            }
+            if (cmd.action === "off") {
+              dev.brightness = 0;
+            }
           }
 
-          if (dev.type === 'fan') {
-            if (typeof cmd.speed === 'number' || typeof cmd.speed_op === 'string') {
+          if (dev.type === "fan") {
+            if (
+              typeof cmd.speed === "number" ||
+              typeof cmd.speed_op === "string"
+            ) {
               const cur = n(dev.speed, 1);
               let v = n(cmd.speed, 0);
-              if (cmd.speed_op === 'inc') v = cur + Math.max(1,v||1);
-              if (cmd.speed_op === 'dec') v = cur - Math.max(1,v||1);
+              if (cmd.speed_op === "inc")
+                v = cur + Math.max(1, v || 1);
+              if (cmd.speed_op === "dec")
+                v = cur - Math.max(1, v || 1);
               dev.speed = clamp(Math.round(v), 0, 3);
               dev.state = dev.speed > 0;
-            } else if (typeof cmd.brightness === 'number') {
-              dev.speed = clamp(Math.round(cmd.brightness * 3 / 100), 0, 3);
+            } else if (typeof cmd.brightness === "number") {
+              dev.speed = clamp(
+                Math.round((cmd.brightness * 3) / 100),
+                0,
+                3
+              );
               dev.state = dev.speed > 0;
             }
-            if (cmd.action === 'on'  && (dev.speed == null || dev.speed === 0)) {
-              dev.speed = 1; dev.state = true;
+
+            if (
+              cmd.action === "on" &&
+              (!dev.speed || dev.speed === 0)
+            ) {
+              dev.speed = 1;
+              dev.state = true;
             }
-            if (cmd.action === 'off') {
-              dev.speed = 0; dev.state = false;
+            if (cmd.action === "off") {
+              dev.speed = 0;
+              dev.state = false;
             }
           }
 
-          if (dev.type === 'speaker') {
-            if (typeof cmd.volume === 'number' || typeof cmd.volume_op === 'string') {
-              const cur = n(dev.volume, dev.state ? 50 : 0);
+          if (dev.type === "speaker") {
+            if (
+              typeof cmd.volume === "number" ||
+              typeof cmd.volume_op === "string"
+            ) {
+              const cur = n(
+                dev.volume,
+                dev.state ? 50 : 0
+              );
               let v = n(cmd.volume, 0);
-              if (cmd.volume_op === 'inc') v = cur + Math.max(5,v||5);
-              if (cmd.volume_op === 'dec') v = cur - Math.max(5,v||5);
+              if (cmd.volume_op === "inc")
+                v = cur + Math.max(5, v || 5);
+              if (cmd.volume_op === "dec")
+                v = cur - Math.max(5, v || 5);
               dev.volume = clamp(Math.round(v), 0, 100);
               dev.state = dev.volume > 0;
-            } else if (typeof cmd.brightness === 'number') {
-              dev.volume = clamp(Math.round(cmd.brightness), 0, 100);
+            } else if (typeof cmd.brightness === "number") {
+              dev.volume = clamp(
+                Math.round(cmd.brightness),
+                0,
+                100
+              );
               dev.state = dev.volume > 0;
             }
-            if (cmd.action === 'on'  && (dev.volume == null || dev.volume === 0)) {
-              dev.volume = 50; dev.state = true;
+
+            if (
+              cmd.action === "on" &&
+              (!dev.volume || dev.volume === 0)
+            ) {
+              dev.volume = 50;
+              dev.state = true;
             }
-            if (cmd.action === 'off') {
-              dev.volume = 0; dev.state = false;
+            if (cmd.action === "off") {
+              dev.volume = 0;
+              dev.state = false;
             }
           }
 
@@ -1833,46 +2869,164 @@
             await window.updateSingleDeviceToFirebase(dev);
           }
 
-          console.log("✅ Voice→Device OK:", dev, cmd);
+          console.log("Voice→Device OK:", dev, cmd);
         }
 
         const delayMs = getDelayMs(cmd);
         if (delayMs > 0) {
           console.log("⏱ Delay voice command", delayMs, "ms");
-          setTimeout(() => {
-            applyNow().catch(e=>console.error("applyVoiceCommandToFirebase delayed error:",e));
+          setTimeout(function () {
+            applyNow().catch(function (e) {
+              console.error(
+                "applyVoiceCommandToFirebase delayed error:",
+                e
+              );
+            });
           }, delayMs);
-          return;
+        } else {
+          await applyNow();
         }
-
-        await applyNow();
-      } catch(e){
+      } catch (e) {
         console.error("applyVoiceCommandToFirebase error:", e);
       }
     };
   </script>
 
-  <!-- ====== SCRIPT 6 (module): Firebase bridge ====== -->
+  <!-- SCRIPT 6: Firebase bridge + Pi backup -->
   <script type="module">
     import {
       loadDevicesFromFirebase,
-      saveDevicesToFirebase,
-      updateSingleDeviceToFirebase,
-      deleteDeviceFromFirebase,
-      clearCommandsInFirebase
-    } from './firebase.js';
+      saveDevicesToFirebase as _saveDevicesToFirebase,
+      updateSingleDeviceToFirebase as _updateSingleDeviceToFirebase,
+      deleteDeviceFromFirebase as _deleteDeviceFromFirebase,
+      clearCommandsInFirebase,
+      ensureDefaultScenes,
+      applySceneById as _applySceneById,
+      subscribeUiScene,
+      setCurrentScene,
+      clearCurrentScene
+    } from "./firebase.js";
 
-    window.deleteDeviceFromFirebase = deleteDeviceFromFirebase;
-    window.saveDevicesToFirebase = saveDevicesToFirebase;
-    window.updateSingleDeviceToFirebase = updateSingleDeviceToFirebase;
-    clearCommandsInFirebase().catch(e => console.error(e));
+    // expose scene helpers ra window để SCRIPT 5 (voice) dùng được
+    window.setCurrentScene = function (id, opts) {
+      return setCurrentScene(id, opts);
+    };
+    window.clearCurrentScene = function (opts) {
+      return clearCurrentScene(opts);
+    };
+    window.subscribeUiScene = function (cb) {
+      return subscribeUiScene(cb);
+    };
 
+    window.deleteDeviceFromFirebase = function (id) {
+      return _deleteDeviceFromFirebase(id);
+    };
+
+    window.saveDevicesToFirebase = function (devices) {
+      return _saveDevicesToFirebase(devices);
+    };
+
+    window.updateSingleDeviceToFirebase = function (dev) {
+      return _updateSingleDeviceToFirebase(dev);
+    };
+    
+    // Scene apply vẫn dùng logic trong firebase.js,
+    window.applySceneById = async function (sceneId) {
+      return _applySceneById(sceneId);
+    };
+
+    function applySceneUI(sceneId, sceneCfg) {
+      const body = document.body;
+      const root = document.documentElement;
+
+      // Tô sáng card scene đang chọn
+      document.querySelectorAll(".scene-card").forEach((card) => {
+        card.classList.toggle("active", card.dataset.scene === sceneId);
+      });
+
+      // Không có scene → về default
+      if (!sceneId || !sceneCfg) {
+        body.dataset.scene = "";
+        body.classList.remove("scene-party");
+        body.style.background = "linear-gradient(145deg, #1b2735, #090a0f)";
+        root.style.removeProperty("--rainbow-enable");
+        return;
+      }
+
+      body.dataset.scene = sceneId;
+
+      const { bgType, bgColors, hasRainbowCards } = sceneCfg;
+
+      // =====================================================
+      // TÙY BIẾN NỀN RIÊNG CHO FOCUS & PARTY (dễ nhìn hơn)
+      // =====================================================
+      if (sceneId === "focus") {
+        // Focus: xanh đậm, dịu mắt
+        body.style.background =
+          "radial-gradient(circle at top, #051b30, #020812)";
+      } else if (sceneId === "party") {
+        // Party: tím/hồng nhưng nền vẫn tối, chữ dễ đọc
+        body.style.background =
+          "radial-gradient(circle at top, #230835, #050210)";
+      } else {
+        // Các scene khác vẫn dùng config từ Firebase
+        if (bgType === "gradient" && Array.isArray(bgColors) && bgColors.length >= 2) {
+          body.style.background = `radial-gradient(circle at top, ${bgColors[0]}, ${bgColors[1]})`;
+        } else if (bgType === "solid" && Array.isArray(bgColors) && bgColors.length >= 1) {
+          body.style.background = bgColors[0];
+        } else {
+          body.style.background = "linear-gradient(145deg, #1b2735, #090a0f)";
+        }
+      }
+
+      // Bật/tắt hiệu ứng rainbow cho card ánh sáng (CSS đang dùng body.scene-party)
+      if (hasRainbowCards && sceneId === "party") {
+        body.classList.add("scene-party");
+      } else {
+        body.classList.remove("scene-party");
+      }
+
+    
+      root.style.setProperty("--rainbow-enable", hasRainbowCards ? "1" : "0");
+    }
+
+
+    // Lắng nghe ui_state/currentScene + ui_state/scenes từ Firebase
+    subscribeUiScene((sceneId, sceneCfg, allScenes) => {
+      console.log("UI scene changed:", sceneId, sceneCfg);
+      applySceneUI(sceneId, sceneCfg);
+    });
+
+    // Gán click cho mấy thẻ scene-card → gọi setCurrentScene / clearCurrentScene
+    document.querySelectorAll(".scene-card").forEach((card) => {
+      card.addEventListener("click", () => {
+        const id = card.dataset.scene;
+        if (!id) return;
+
+        const current = document.body.dataset.scene || null;
+
+        // Nếu click lại scene đang bật → clear scene
+        if (current === id) {
+          clearCurrentScene({ applyAllOff: false }); // đổi true nếu muốn clear là tắt luôn tất cả devices
+        } else {
+          setCurrentScene(id, { applyDevices: true }); // vừa apply UI, vừa applySceneById để bật/tắt thiết bị
+        }
+      });
+    });
+
+    // ===== CLEAR COMMANDS + SCENES (Firebase side, ignore lỗi khi offline) =====
+    clearCommandsInFirebase().catch((e) => console.error(e));
+    ensureDefaultScenes().catch((e) => console.error(e));
+
+    // ===== DEVICE SYNC BAN ĐẦU (load devices) =====
     const perDeviceTimers = {};
     function _saveDeviceDebounced_internal(dev) {
       if (!dev || !dev.id) return;
       if (perDeviceTimers[dev.id]) clearTimeout(perDeviceTimers[dev.id]);
       perDeviceTimers[dev.id] = setTimeout(() => {
-        updateSingleDeviceToFirebase(dev).catch(e => console.error(e));
+        window
+          .updateSingleDeviceToFirebase(dev)
+          .catch((e) => console.error(e));
         perDeviceTimers[dev.id] = null;
       }, 150);
     }
@@ -1880,20 +3034,38 @@
 
     loadDevicesFromFirebase((firebaseDevices) => {
       if (window._preventFirebaseSync) {
-        console.log("⏳ Firebase sync blocked (anti-bounce)");
+        console.log("Firebase sync blocked (anti-bounce)");
         return;
       }
+
       if (firebaseDevices && firebaseDevices.length > 0) {
         window.saved = firebaseDevices;
       } else {
-        window.saved = JSON.parse(localStorage.getItem('my_smart_devices_v1') || "[]");
+        const raw =
+          localStorage.getItem("my_smart_devices_v1");
+        window.saved = raw ? JSON.parse(raw) : [];
       }
-      try { renderSavedDevices(); } catch(e){ console.error(e); }
+
+      try {
+        if (typeof window.renderSavedDevices === "function") {
+          window.renderSavedDevices();
+        }
+      } catch (e) {
+        console.error(e);
+      }
     });
   </script>
 
   <div id="voicePill" class="voice-pill">Nhấn 🎤 để nói…</div>
-  <button id="voiceBtn" class="voice-btn" title="Nhấn để bắt đầu/ kết thúc ghi âm">🎤</button>
-  <script type="module" src="scenes.js"></script>
+  <button
+    id="voiceBtn"
+    class="voice-btn"
+    title="Nhấn để bắt đầu/ kết thúc ghi âm"
+  >
+    🎤
+  </button>
+
+  <link rel="stylesheet" href="scenes.css" />
+ <!--<script src="/scenes.js"></script>-->
 </body>
 </html>

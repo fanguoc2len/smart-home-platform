@@ -1,0 +1,142 @@
+/* ===========================
+   SCENES – GRID & CARD
+   =========================== */
+
+/* layout giống Entry/Living: thẻ nhỏ, canh trái, 2 cột trên mobile */
+#scenesGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 16px;
+}
+
+/* card scene dùng chung style với .card, chỉ chỉnh thêm chút */
+.scene-card {
+    border-radius: 18px;
+    padding: 14px 16px;
+    cursor: pointer;
+}
+
+/* bên trong: icon + text nằm 1 hàng giống thẻ thiết bị */
+.scene-card .scene-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.scene-card .scene-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.scene-card .scene-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #f4f7ff;
+}
+
+/* ===========================
+   ACTIVE STATE – GLOW MỖI THEME
+   =========================== */
+
+.scene-card.active {
+    border-width: 2px;
+    box-shadow: 0 0 16px rgba(0, 255, 255, 0.25);
+}
+
+/* Relax: vàng ấm */
+.scene-card[data-scene="relax"].active {
+    border-color: #ffc857;
+    box-shadow: 0 0 16px rgba(255, 200, 87, 0.55);
+}
+
+.scene-card[data-scene="relax"].active .scene-title,
+.scene-card[data-scene="relax"].active .scene-icon {
+    color: #ffe7a3;
+    text-shadow: 0 0 6px rgba(255, 231, 163, 0.9);
+}
+
+/* Focus: xanh ngọc tập trung */
+.scene-card[data-scene="focus"].active {
+    border-color: #00ffd1;
+    box-shadow: 0 0 16px rgba(0, 255, 209, 0.55);
+}
+
+.scene-card[data-scene="focus"].active .scene-title,
+.scene-card[data-scene="focus"].active .scene-icon {
+    color: #b5fff4;
+    text-shadow: 0 0 6px rgba(0, 255, 209, 0.85);
+}
+
+/* Party: hồng tím – giống nút party cũ */
+.scene-card[data-scene="party"].active {
+    border-color: #ff2fff;
+    box-shadow: 0 0 18px rgba(255, 47, 255, 0.7);
+}
+
+.scene-card[data-scene="party"].active .scene-title,
+.scene-card[data-scene="party"].active .scene-icon {
+    color: #ffe3ff;
+    text-shadow: 0 0 8px rgba(255, 60, 255, 0.95);
+}
+
+/* Night: tím lạnh */
+.scene-card[data-scene="night"].active {
+    border-color: #a87bff;
+    box-shadow: 0 0 18px rgba(168, 123, 255, 0.7);
+}
+
+.scene-card[data-scene="night"].active .scene-title,
+.scene-card[data-scene="night"].active .scene-icon {
+    color: #e1d6ff;
+    text-shadow: 0 0 8px rgba(168, 123, 255, 0.95);
+}
+
+/* ===========================
+   BODY THEME – ĐỀU TỐI, KHÔNG LẤN MÀU ĐÈN
+   =========================== */
+
+body.scene-relax {
+    background: radial-gradient(circle at top, #122c3a 0%, #050b12 55%, #010309 100%);
+    transition: background 0.5s ease;
+}
+
+body.scene-focus {
+    background: radial-gradient(circle at top, #05323a 0%, #020712 55%, #000207 100%);
+    transition: background 0.5s ease;
+}
+
+body.scene-night {
+    background: radial-gradient(circle at top, #050516 0%, #02030b 55%, #000000 100%);
+    transition: background 0.5s ease;
+}
+
+/* party vẫn có gradient chạy nhưng nền vẫn tối, không "đè" màu đèn */
+body.scene-party {
+    background: radial-gradient(circle at top, #3c003a 0%, #120022 40%, #020208 100%);
+    background-size: 220% 220%;
+    animation: partyBgFlow 14s ease-in-out infinite;
+    transition: background 0.6s ease;
+}
+
+@keyframes partyBgFlow {
+    0%   { background-position: 0% 40%; }
+    50%  { background-position: 100% 60%; }
+    100% { background-position: 0% 40%; }
+}
+
+/* Mobile: Scenes 2 cột giống Entry */
+@media (max-width: 640px) {
+    #scenesGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .scene-card {
+        padding: 12px 12px;
+        border-radius: 16px;
+    }
+
+    .scene-card .scene-title {
+        font-size: 14px;
+    }
+}

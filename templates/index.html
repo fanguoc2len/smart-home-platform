@@ -7,7 +7,7 @@
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(145deg, #1b2735, #090a0f);
+      background: radial-gradient(circle at top, #243b55 0%, #141E30 45%, #050816 100%);
       color: #fff;
       text-align: center;
       margin: 0;
@@ -16,84 +16,425 @@
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
+      overflow-x: hidden;
     }
     h1 {
-      margin-top: 20px;
+      margin: 10px 0px 4px;
       color: #00d4ff;
+      text-shadow: 0 0 12px rgba(0, 212, 255, 0.8);
+      letter-spacing: 1px;
     }
     video {
-      width: 90%;
-      max-width: 400px;
-      border-radius: 16px;
-      margin-top: 20px;
-      box-shadow: 0 0 15px #00d4ff;
+      /* chiều ngang bớt lại */
+      width: 83%;
+      max-width: 360px;
+
+      /* QUAN TRỌNG: fix chiều cao theo viewport */
+      height: 45vh;        /* ~45% chiều cao màn hình */
+      max-height: 45vh;
+
+      border-radius: 18px;
+      margin-top: 4px;
+      box-shadow: 0 0 25px rgba(0, 212, 255, 0.6);
+      border: 2px solid rgba(0, 212, 255, 0.5);
+      background:#000;
+
+      object-fit: cover;   /* cắt vừa khung, không bị méo */
     }
     canvas {
       display: none;
     }
-    button {
-      margin-top: 20px;
-      background: #00d4ff;
+
+    #captureBtn {
+      margin-top: 22px;
+      background: linear-gradient(135deg, #00e0ff, #00ffb8);
       color: #000;
       border: none;
-      padding: 12px 24px;
-      border-radius: 10px;
-      font-weight: bold;
-      cursor: not-allowed;
-      opacity: 0.7;
+      padding: 12px 28px;
+      border-radius: 999px;
+      font-weight: 600;
+      cursor: default;
+      opacity: 0.9;
+      box-shadow: 0 0 18px rgba(0, 255, 200, 0.8);
     }
+    #captureBtn:disabled {
+      cursor: default;
+    }
+
     #result {
-      margin-top: 16px;
-      font-size: 1.05em;
+      margin-top: 10px;
+      font-size: 1.0em;
       color: #00ff88;
       min-height: 22px;
+      text-shadow: 0 0 8px rgba(0, 255, 136, 0.6);
     }
     .hint {
-      margin-top: 10px;
+      margin-top: 4px;
       color: #aaa;
       font-size: 0.9em;
     }
 
-    /* popup đăng ký */
+    #btnAdminOpen {
+      margin-top: 20px;
+      background: #222a3b;
+      color: #e0e6ff;
+      border: 1px solid rgba(0, 212, 255, 0.4);
+      padding: 10px 24px;
+      border-radius: 999px;
+      font-weight: 500;
+      cursor: pointer;
+      box-shadow: 0 0 14px rgba(0, 212, 255, 0.4);
+    }
+    #btnAdminOpen:hover {
+      background: #283248;
+    }
+
+    /* Nút mở PIN login – pill viền gradient, glow giống webapp */
+    #btnPinLogin {
+      margin-top: 8px;   /* sát với nút Admin hơn */
+      padding: 10px 26px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.9rem;
+      letter-spacing: 0.02em;
+
+      /* nền tối + viền gradient */
+      background:
+        radial-gradient(circle at top, #020617, #020617) padding-box,
+        linear-gradient(135deg, rgba(56,189,248,0.95), rgba(129,140,248,0.95)) border-box;
+
+      color: #e5f3ff;
+      box-shadow:
+        0 0 0 1px rgba(15,23,42,1),
+        0 0 20px rgba(56,189,248,0.7);
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+
+      transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease,
+        background 0.15s ease,
+        filter 0.15s ease;
+    }
+
+    #btnPinLogin:hover {
+      filter: brightness(1.05);
+      box-shadow:
+        0 0 0 1px rgba(15,23,42,1),
+        0 0 26px rgba(59,130,246,0.9);
+    }
+
+    #btnPinLogin:active {
+      transform: scale(0.97);
+      box-shadow:
+        0 0 0 1px rgba(15,23,42,1),
+        0 0 18px rgba(37,99,235,0.9);
+    }
+
+    /* ===== popup đăng ký (overlay full màn hình) ===== */
     #registerPopup {
-      display: none;
       position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.8);
+      inset: 0;
+      display: none;              /* flex khi bật */
       justify-content: center;
       align-items: center;
-      flex-direction: column;
+      background: radial-gradient(circle at top, rgba(16,24,40,0.92), rgba(3,7,18,0.96));
       z-index: 999;
+      padding: 16px;
     }
     #registerBox {
-      background: #1b2735;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 15px #00d4ff;
-      width: 85%;
-      max-width: 350px;
+      width: 100%;
+      max-width: 520px;
+      background: radial-gradient(circle at top left, #202a3c, #0b1020 60%);
+      border-radius: 24px;
+      padding: 24px 28px 22px;
+      box-shadow:
+        0 0 0 1px rgba(0, 212, 255, 0.18),
+        0 0 40px rgba(0, 0, 0, 0.8);
+      color: #e5e9ff;
+      position: relative;
     }
-    #registerBox input {
-      padding: 10px;
-      width: 90%;
+    #registerBox::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 24px;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(0,212,255,0.7), rgba(0,255,184,0.4));
+      -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+              mask-composite: exclude;
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    #registerBox h3 {
+      margin: 0 0 4px;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    #registerBox h3 span.icon {
+      font-size: 1.4rem;
+      color: #a855ff;
+      text-shadow: 0 0 10px rgba(168, 85, 255, 0.9);
+    }
+    #registerBox p {
+      margin: 4px 0 14px;
+      font-size: 0.92rem;
+      color: #cbd5f5;
+    }
+
+    .popup-field {
+      width: 100%;
+      text-align: left;
       margin-top: 10px;
-      border-radius: 8px;
-      border: none;
+    }
+    .popup-field label {
+      display: block;
+      font-size: 0.85rem;
+      margin-bottom: 6px;
+      color: #9ca9ff;
+    }
+    .popup-field input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 255, 0.5);
+      background: rgba(15, 23, 42, 0.95);
+      color: #e5e7eb;
       outline: none;
+      font-size: 0.95rem;
     }
-    #registerBox button {
-      margin-top: 15px;
-      padding: 10px 20px;
+    .popup-field input::placeholder {
+      color: #6b7280;
+    }
+    .popup-field input:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.7);
+    }
+
+    .popup-actions {
+      margin-top: 18px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .popup-actions button {
+      min-width: 88px;
+      padding: 9px 18px;
+      border-radius: 999px;
       border: none;
-      border-radius: 8px;
-      background: #00d4ff;
-      color: #000;
-      font-weight: bold;
       cursor: pointer;
+      font-weight: 500;
+      font-size: 0.95rem;
     }
-    #registerBox button:hover {
-      background: #00a3cc;
+    #btnCancelRegister {
+      background: #111827;
+      color: #e5e7eb;
+      border: 1px solid rgba(75, 85, 99, 0.9);
+    }
+    #btnCancelRegister:hover {
+      background: #020617;
+    }
+    #btnDoRegister {
+      background: radial-gradient(circle at top left, #22d3ee, #0ea5e9);
+      color: #020617;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.9);
+    }
+    #btnDoRegister:hover {
+      filter: brightness(1.05);
+    }
+
+    #popupError {
+      margin-top: 8px;
+      font-size: 0.82rem;
+      color: #fb7185;
+      text-align: left;
+      min-height: 18px;
+    }
+
+    /* ===== Popup PIN login (keypad) ===== */
+    
+    #pinPopup {
+      position: fixed;
+      inset: 0;
+      display: none; /* flex khi mở */
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at top, rgba(15,23,42,0.96), rgba(3,7,18,0.98));
+      z-index: 1000;
+      padding: 16px;
+    }
+
+    #pinBox {
+      width: 100%;
+      max-width: 360px;
+      border-radius: 26px;
+      padding: 18px 18px 16px;
+      position: relative;
+      color: #e5e9ff;
+      text-align: center;
+
+      /* nền + viền neon giống card webapp */
+      background:
+        radial-gradient(circle at top left, #020617, #020617 55%, #020617 100%) padding-box,
+        linear-gradient(135deg, rgba(59,130,246,0.9), rgba(56,189,248,0.9)) border-box;
+      border: 1px solid transparent;
+      box-shadow:
+        0 0 0 1px rgba(15,23,42,0.9),
+        0 0 45px rgba(56,189,248,0.4);
+    }
+
+    #pinTitle {
+      margin: 0 0 4px;
+      font-size: 0.98rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    #pinSubtitle {
+      margin: 0 0 12px;
+      font-size: 0.82rem;
+      color: #c7d2fe;
+    }
+
+    /* chấm PIN */
+    .pin-dots {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .pin-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      border: 2px solid rgba(191,219,254,0.8);
+      background: transparent;
+      box-shadow: 0 0 10px rgba(59,130,246,0.6);
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    .pin-dot.filled {
+      background: #38bdf8;
+      border-color: #38bdf8;
+    }
+
+    /* lưới keypad */
+    .pin-keypad {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    /* base style cho mọi nút */
+    .pin-key,
+    .pin-func {
+      padding: 9px 0;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      transition:
+        transform 0.12s ease,
+        box-shadow 0.12s ease,
+        filter 0.12s ease,
+        background 0.12s ease;
+    }
+
+    /* nút số 0–9 */
+    .pin-key {
+      color: #e5ecff;
+      background:
+        radial-gradient(circle at top, #111827, #020617) padding-box,
+        linear-gradient(135deg, rgba(59,130,246,0.9), rgba(79,70,229,0.9)) border-box;
+      border: 1px solid transparent;
+      box-shadow:
+        0 0 0 1px rgba(15,23,42,0.9),
+        0 0 18px rgba(59,130,246,0.7);
+    }
+    .pin-key:hover {
+      filter: brightness(1.06);
+      box-shadow:
+        0 0 0 1px rgba(15,23,42,0.9),
+        0 0 22px rgba(59,130,246,0.95);
+    }
+    .pin-key:active {
+      transform: scale(0.96);
+      box-shadow:
+        0 0 0 1px rgba(15,23,42,0.9),
+        0 0 14px rgba(37,99,235,0.9);
+    }
+
+    /* nút chức năng: Xóa, ⌫, Đóng, OK */
+    .pin-func {
+      font-size: 0.85rem;
+      background:
+        radial-gradient(circle at top, #020617, #020617) padding-box,
+        linear-gradient(135deg, rgba(148,163,184,0.8), rgba(55,65,81,0.8)) border-box;
+      border: 1px solid transparent;
+      color: #e5e7eb;
+      box-shadow:
+        0 0 0 1px rgba(15,23,42,0.9),
+        0 0 14px rgba(15,23,42,0.9);
+    }
+    .pin-func:hover {
+      filter: brightness(1.05);
+    }
+    .pin-func:active {
+      transform: scale(0.96);
+    }
+
+    /* riêng nút OK – xanh neon giống webapp */
+    #pinOk {
+      background:
+        radial-gradient(circle at top, #16a34a, #15803d) padding-box,
+        linear-gradient(135deg, rgba(74,222,128,1), rgba(22,163,74,1)) border-box;
+      color: #ecfdf5;
+      box-shadow:
+        0 0 0 1px rgba(6,95,70,1),
+        0 0 22px rgba(52,211,153,0.9);
+    }
+    #pinOk:hover {
+      filter: brightness(1.07);
+    }
+    #pinOk:active {
+      transform: scale(0.96);
+    }
+
+    /* hàng Đóng + OK */
+    #pinError {
+      margin-top: 8px;
+      min-height: 18px;
+      font-size: 0.8rem;
+      color: #fb7185;
+    }
+
+
+    @media (max-width: 480px) {
+      #registerBox {
+        padding: 20px 18px 18px;
+      }
+      #registerBox h3 {
+        font-size: 1.05rem;
+      }
     }
   </style>
 </head>
@@ -106,44 +447,121 @@
   <button id="captureBtn" disabled>🟢 Đang quét khuôn mặt...</button>
 
   <div id="result"></div>
-  <div class="hint">Đưa mặt bạn vào khung để xác thực tự động</div>
+  <div class="hint">Đưa khuôn mặt vào khung hình, giữ 1–2 giây để hệ thống xác thực.</div>
 
-  <!-- Popup đăng ký khuôn mặt -->
+  <button id="btnAdminOpen">＋ Đăng ký khuôn mặt mới (Admin)</button>
+  <button id="btnPinLogin">🧷 Không dùng camera? Vào bằng mã PIN</button>
+
+  <!-- Popup đăng ký khuôn mặt (Admin) -->
   <div id="registerPopup">
     <div id="registerBox">
-      <h3>❓ Không nhận diện được khuôn mặt</h3>
-      <p>Nhập tên để đăng ký khuôn mặt mới:</p>
-      <input id="regName" type="text" placeholder="Nhập tên của bạn...">
-      <div>
-        <button id="confirmRegister">Đăng ký</button>
-        <button id="cancelRegister" style="background:#555;color:#fff;">Hủy</button>
+      <h3>
+        <span class="icon">＋</span>
+        Đăng ký khuôn mặt mới
+      </h3>
+      <p>Không nhận diện được? Nhập tên và mật khẩu admin để lưu khuôn mặt này.</p>
+
+      <div class="popup-field">
+        <label for="regName">Tên hiển thị</label>
+        <input id="regName" type="text" placeholder="Nhập tên của bạn...">
+      </div>
+
+      <div class="popup-field">
+        <label for="adminPwd">Mật khẩu admin</label>
+        <input id="adminPwd" type="password" placeholder="Nhập mật khẩu admin...">
+      </div>
+
+      <div id="popupError"></div>
+
+      <div class="popup-actions">
+        <button id="btnCancelRegister">Hủy</button>
+        <button id="btnDoRegister">Đăng ký</button>
       </div>
     </div>
   </div>
 
-  <script>
-    const FLASK_UPLOAD_URL = "https://christinia-sorediate-fred.ngrok-free.dev/upload";
-    const FLASK_REGISTER_URL = "https://christinia-sorediate-fred.ngrok-free.dev/register";
+  <!-- Popup đăng nhập bằng PIN (dự phòng) -->
+  <div id="pinPopup">
+    <div id="pinBox">
+      <h3 id="pinTitle">🔑 Đăng nhập bằng mã PIN</h3>
+      <p id="pinSubtitle">Dùng khi camera không nhận diện được hoặc mạng yếu.</p>
 
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const result = document.getElementById('result');
-    const popup = document.getElementById('registerPopup');
-    const regName = document.getElementById('regName');
-    const btnConfirm = document.getElementById('confirmRegister');
-    const btnCancel = document.getElementById('cancelRegister');
+      <div class="pin-dots">
+        <div class="pin-dot" id="dot1"></div>
+        <div class="pin-dot" id="dot2"></div>
+        <div class="pin-dot" id="dot3"></div>
+        <div class="pin-dot" id="dot4"></div>
+      </div>
+
+      <div class="pin-keypad">
+        <button class="pin-key" data-digit="1">1</button>
+        <button class="pin-key" data-digit="2">2</button>
+        <button class="pin-key" data-digit="3">3</button>
+        <button class="pin-key" data-digit="4">4</button>
+        <button class="pin-key" data-digit="5">5</button>
+        <button class="pin-key" data-digit="6">6</button>
+        <button class="pin-key" data-digit="7">7</button>
+        <button class="pin-key" data-digit="8">8</button>
+        <button class="pin-key" data-digit="9">9</button>
+        <button class="pin-func" id="pinClear">Xóa</button>
+        <button class="pin-key" data-digit="0">0</button>
+        <button class="pin-func" id="pinBack">⌫</button>
+      </div>
+
+      <div style="margin-top:10px; display:flex; justify-content:space-between; gap:8px;">
+        <button class="pin-func" id="pinClose" style="flex:1;">Đóng</button>
+        <button class="pin-func" id="pinOk" style="flex:1;">OK</button>
+      </div>
+
+      <div id="pinError"></div>
+    </div>
+  </div>
+
+  <script>
+    const FLASK_UPLOAD_URL   = "https://christinia-sorediate-fred.ngrok-free.dev/upload";
+    const FLASK_REGISTER_URL = "https://christinia-sorediate-fred.ngrok-free.dev/register";
+    const FLASK_PIN_URL      = "https://christinia-sorediate-fred.ngrok-free.dev/pin_login";
+
+    const video    = document.getElementById('video');
+    const canvas   = document.getElementById('canvas');
+    const result   = document.getElementById('result');
+    const btnScan  = document.getElementById('captureBtn');
+
+    const popup          = document.getElementById('registerPopup');
+    const regNameInput   = document.getElementById('regName');
+    const adminPwdInput  = document.getElementById('adminPwd');
+    const popupError     = document.getElementById('popupError');
+    const btnAdminOpen   = document.getElementById('btnAdminOpen');
+    const btnDoRegister  = document.getElementById('btnDoRegister');
+    const btnCancelRegister = document.getElementById('btnCancelRegister');
+
+    // PIN DOM
+    const btnPinLogin  = document.getElementById('btnPinLogin');
+    const pinPopup     = document.getElementById('pinPopup');
+    const pinDots      = [
+      document.getElementById('dot1'),
+      document.getElementById('dot2'),
+      document.getElementById('dot3'),
+      document.getElementById('dot4'),
+    ];
+    const pinError     = document.getElementById('pinError');
+    const btnPinClose  = document.getElementById('pinClose');
+    const btnPinOk     = document.getElementById('pinOk');
+    const btnPinBack   = document.getElementById('pinBack');
+    const btnPinClear  = document.getElementById('pinClear');
+    const pinKeys      = document.querySelectorAll('.pin-key');
 
     let streamRef = null;
-    let scanning = false;
-    let unknownCount = 0;
+    let scanning  = false;
+    let scanTimer = null;
 
-    // Bật camera
+    // ================= CAMERA =================
     async function startCamera() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
         streamRef = stream;
         video.srcObject = stream;
-        startStreaming();
+        startScanning();
       } catch (err) {
         alert('Không truy cập được camera: ' + err);
       }
@@ -155,20 +573,56 @@
         streamRef = null;
       }
       scanning = false;
+      if (scanTimer) {
+        clearInterval(scanTimer);
+        scanTimer = null;
+      }
     }
 
+    function startScanning() {
+      if (scanTimer) return;  // tránh tạo nhiều interval
+      scanning = true;
+      btnScan.innerText = "🟢 Đang quét khuôn mặt...";
+      result.innerText  = "🔍 Đang quét khuôn mặt...";
+      scanTimer = setInterval(captureAndSend, 600);
+    }
+
+    // ============== AUTH OK ==============
     function onRecognized(name) {
-      try { localStorage.setItem('recognizedName', name); } catch (e) {}
-      result.innerText = `✅ Đã nhận diện: ${name}. Đang chuyển...`;
+      if (!name || name === "Unknown") return;
+
+      scanning = false;
+
+      try {
+        localStorage.setItem('recognizedName', name);
+        localStorage.setItem('face_auth_ok',  '1');
+        localStorage.setItem('face_auth_time', String(Date.now()));
+      } catch (e) {
+        console.warn('Cannot access localStorage:', e);
+      }
+
+      result.innerText = `✅ Xin chào ${name}! Đang chuyển sang Smart Home...`;
+      btnScan.innerText = "✅ Đã nhận diện thành công";
       stopCamera();
-      setTimeout(() => (window.location.href = 'home.html'), 700);
+
+      // dùng URL tuyệt đối tới home.html
+      const homeUrl = new URL('home.html', window.location.href).toString();
+      console.log('[FaceAuth] redirect to', homeUrl);
+
+      setTimeout(() => {
+        window.location.href = homeUrl;
+      }, 750);
     }
 
+    // cho phép test trong Console: onRecognized('Test')
+    window.onRecognized = onRecognized;
+
+    // ============== GỬI FRAME LÊN FLASK ==============
     async function captureAndSend() {
       if (!scanning || !video.videoWidth) return;
 
       const ctx = canvas.getContext('2d');
-      canvas.width = video.videoWidth;
+      canvas.width  = video.videoWidth;
       canvas.height = video.videoHeight;
       ctx.drawImage(video, 0, 0);
       const imageBase64 = canvas.toDataURL('image/jpeg', 0.5);
@@ -181,66 +635,199 @@
         });
         const data = await res.json();
 
-        if (data.name && data.name !== "Unknown") {
-          onRecognized(data.name);
-          unknownCount = 0;
+        console.log('[FaceAuth] response:', data);
+
+        const name = data.name || data.recognized || "Unknown";
+        const sim  = data.similarity ?? data.similarity_score;
+
+        if (name && name !== "Unknown") {
+          onRecognized(name);
           return;
         }
 
-        // Nếu chưa nhận diện được
-        if (data.name === "Unknown" || data.recognized === "Unknown") {
-          unknownCount++;
-          result.innerText = "🔍 Đang quét...";
-          if (unknownCount >= 3) { // Sau 3 lần không nhận
-            popup.style.display = "flex";
-            scanning = false;
-            unknownCount = 0;
-          }
-        }
+        // chưa nhận ra
+        result.innerText = "🔍 Đang quét... (không nhận diện được, thử giữ mặt lâu hơn)";
       } catch (err) {
         console.warn('Lỗi gửi frame:', err);
+        result.innerText = "⚠️ Lỗi kết nối server, thử lại...";
       }
     }
 
-    function startStreaming() {
-      if (scanning) return;
-      scanning = true;
-      result.innerText = "🔍 Đang quét khuôn mặt...";
-      setInterval(captureAndSend, 500);
+    // ============== POPUP ĐĂNG KÝ (ADMIN) ==============
+    function openRegisterPopup() {
+      popup.style.display = "flex";
+      popupError.innerText = "";
+      regNameInput.value = "";
+      adminPwdInput.value = "";
+      regNameInput.focus();
+      // không dừng quét, chỉ mở popup
     }
 
-    // Xác nhận đăng ký
-    btnConfirm.addEventListener("click", async () => {
-      const name = regName.value.trim();
-      if (!name) return alert("Vui lòng nhập tên!");
+    function closeRegisterPopup() {
+      popup.style.display = "none";
+      popupError.innerText = "";
+    }
 
+    btnAdminOpen.addEventListener("click", openRegisterPopup);
+    btnCancelRegister.addEventListener("click", closeRegisterPopup);
+
+    btnDoRegister.addEventListener("click", async () => {
+      const name = regNameInput.value.trim();
+      const pwd  = adminPwdInput.value.trim();
+
+      if (!name) {
+        popupError.innerText = "Vui lòng nhập tên hiển thị.";
+        regNameInput.focus();
+        return;
+      }
+      if (!pwd) {
+        popupError.innerText = "Vui lòng nhập mật khẩu admin.";
+        adminPwdInput.focus();
+        return;
+      }
+
+      if (!video.videoWidth) {
+        popupError.innerText = "Không đọc được camera. Vui lòng thử lại.";
+        return;
+      }
       const ctx = canvas.getContext("2d");
+      canvas.width  = video.videoWidth;
+      canvas.height = video.videoHeight;
       ctx.drawImage(video, 0, 0);
       const base64 = canvas.toDataURL("image/jpeg", 0.8);
 
-      result.innerText = "⏳ Đang đăng ký khuôn mặt...";
-      popup.style.display = "none";
+      popupError.innerText = "⏳ Đang đăng ký khuôn mặt...";
+      btnDoRegister.disabled = true;
 
       try {
         const res = await fetch(FLASK_REGISTER_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, image: base64 })
+          body: JSON.stringify({
+            name,
+            image: base64,
+            admin_password: pwd
+          })
         });
         const data = await res.json();
-        alert(data.message || "Đăng ký thành công!");
-        result.innerText = "✅ Đăng ký xong! Tiếp tục quét...";
-        scanning = true;
+        console.log('[FaceAuth] register:', data);
+
+        if (data.status === "success") {
+          alert(data.message || "Đăng ký thành công!");
+          closeRegisterPopup();
+        } else {
+          if (data.code === "bad_admin_password") {
+            popupError.innerText = "Sai mật khẩu admin, không được phép đăng ký.";
+          } else {
+            popupError.innerText = data.message || "Đăng ký thất bại, thử lại.";
+          }
+        }
       } catch (e) {
-        alert("Lỗi khi đăng ký: " + e);
+        popupError.innerText = "Lỗi mạng khi đăng ký: " + e;
+      } finally {
+        btnDoRegister.disabled = false;
       }
     });
 
-    btnCancel.addEventListener("click", () => {
-      popup.style.display = "none";
-      scanning = true;
+    // ============== PIN LOGIN (DỰ PHÒNG, KEYPAD) ==============
+    let pinBuffer = "";
+
+    function updatePinDots() {
+      for (let i = 0; i < pinDots.length; i++) {
+        if (i < pinBuffer.length) {
+          pinDots[i].classList.add("filled");
+        } else {
+          pinDots[i].classList.remove("filled");
+        }
+      }
+    }
+
+    function openPinPopup() {
+      pinBuffer = "";
+      updatePinDots();
+      pinError.innerText = "";
+      pinPopup.style.display = "flex";
+    }
+
+    function closePinPopup() {
+      pinPopup.style.display = "none";
+    }
+
+    function addDigit(d) {
+      if (pinBuffer.length >= 4) return; // 4 số
+      pinBuffer += d;
+      updatePinDots();
+      pinError.innerText = "";
+    }
+
+    function backspacePin() {
+      if (!pinBuffer.length) return;
+      pinBuffer = pinBuffer.slice(0, -1);
+      updatePinDots();
+    }
+
+    function clearPin() {
+      pinBuffer = "";
+      updatePinDots();
+      pinError.innerText = "";
+    }
+
+    async function submitPin() {
+      if (pinBuffer.length < 4) {
+        pinError.innerText = "Nhập đủ 4 số PIN.";
+        return;
+      }
+      pinError.innerText = "⏳ Đang kiểm tra PIN...";
+      btnPinOk.disabled = true;
+
+      try {
+        const res = await fetch(FLASK_PIN_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pin: pinBuffer })
+        });
+        const data = await res.json();
+        console.log("[FaceAuth] pin_login:", data);
+
+        if (data.status === "success") {
+          const name = data.name || "Admin";
+          closePinPopup();
+          onRecognized(name); // dùng luôn flow nhận diện khuôn mặt
+        } else {
+          if (data.code === "bad_pin") {
+            pinError.innerText = "Sai PIN, hãy thử lại.";
+          } else {
+            pinError.innerText = data.message || "Không đăng nhập được bằng PIN.";
+          }
+          clearPin();
+        }
+      } catch (e) {
+        pinError.innerText = "Lỗi mạng khi gửi PIN, thử lại.";
+      } finally {
+        btnPinOk.disabled = false;
+      }
+    }
+
+    btnPinLogin.addEventListener("click", openPinPopup);
+    btnPinClose.addEventListener("click", closePinPopup);
+    btnPinBack.addEventListener("click", backspacePin);
+    btnPinClear.addEventListener("click", clearPin);
+    btnPinOk.addEventListener("click", submitPin);
+
+    pinKeys.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const d = btn.getAttribute("data-digit");
+        if (d) {
+          addDigit(d);
+          // auto gửi khi đủ 4 số
+          if (pinBuffer.length === 4) {
+            submitPin();
+          }
+        }
+      });
     });
 
+    // ============== START ==============
     window.addEventListener('beforeunload', stopCamera);
     startCamera();
   </script>
