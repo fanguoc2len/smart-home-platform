@@ -1,0 +1,35 @@
+name: Python Smoke Checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Repository hygiene
+        run: python3 scripts/check_repo_hygiene.py
+
+      - name: Syntax check
+        run: |
+          python3 -m py_compile \
+            app.py \
+            backup_server_pi.py \
+            flask_ai_server.py \
+            flaskai.py \
+            voice_debug.py \
+            test_voice.py \
+            testgiongnoi.py \
+            whisper_test.py

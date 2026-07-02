@@ -4,6 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nhận diện khuôn mặt - Smart Home</title>
+  <meta name="theme-color" content="#050914" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Smart Home" />
+  <link rel="manifest" href="{{ url_for('manifest') }}" />
+  <link rel="icon" href="{{ url_for('static', filename='icons/app-icon.svg') }}" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/app-icon.svg') }}" />
+  <script src="{{ url_for('static', filename='pwa.js') }}" defer></script>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -437,20 +445,43 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='liquid-glass.css') }}" />
 </head>
-<body>
-  <h1>🔒 Smart Home - Nhận diện khuôn mặt</h1>
+<body class="liquid-auth">
+  <main class="auth-shell">
+    <div class="liquid-topnote">
+      <span class="liquid-chip primary">Face Access</span>
+      <span class="liquid-chip">Smart Home Control</span>
+    </div>
 
-  <video id="video" autoplay playsinline></video>
-  <canvas id="canvas"></canvas>
+    <section class="auth-panel">
+      <div class="auth-copy">
+        <p class="eyebrow">Mở khóa Smart Home</p>
+        <h1>Đăng nhập bằng khuôn mặt</h1>
+        <p class="auth-lead">
+          Giữ mặt trong khung hình để mở khóa nhanh, sau đó chuyển vào bảng điều khiển Smart Home.
+        </p>
+      </div>
 
-  <button id="captureBtn" disabled>🟢 Đang quét khuôn mặt...</button>
+      <div class="camera-stage">
+        <div class="camera-live">Live</div>
+        <video id="video" autoplay playsinline></video>
+      </div>
+      <canvas id="canvas"></canvas>
 
-  <div id="result"></div>
-  <div class="hint">Đưa khuôn mặt vào khung hình, giữ 1–2 giây để hệ thống xác thực.</div>
+      <button id="captureBtn" disabled>Đang quét khuôn mặt...</button>
 
-  <button id="btnAdminOpen">＋ Đăng ký khuôn mặt mới (Admin)</button>
-  <button id="btnPinLogin">🧷 Không dùng camera? Vào bằng mã PIN</button>
+      <div class="status-stack">
+        <div id="result"></div>
+        <div class="hint">Đưa khuôn mặt vào khung hình, giữ 1-2 giây để hệ thống xác thực.</div>
+      </div>
+
+      <div class="auth-actions">
+        <button id="btnAdminOpen">Đăng ký khuôn mặt mới (Admin)</button>
+        <button id="btnPinLogin">Không dùng camera? Vào bằng mã PIN</button>
+      </div>
+    </section>
+  </main>
 
   <!-- Popup đăng ký khuôn mặt (Admin) -->
   <div id="registerPopup">
@@ -508,9 +539,9 @@
         <button class="pin-func" id="pinBack">⌫</button>
       </div>
 
-      <div style="margin-top:10px; display:flex; justify-content:space-between; gap:8px;">
-        <button class="pin-func" id="pinClose" style="flex:1;">Đóng</button>
-        <button class="pin-func" id="pinOk" style="flex:1;">OK</button>
+      <div class="pin-footer">
+        <button class="pin-func" id="pinClose">Đóng</button>
+        <button class="pin-func" id="pinOk">OK</button>
       </div>
 
       <div id="pinError"></div>
@@ -518,9 +549,10 @@
   </div>
 
   <script>
-    const FLASK_UPLOAD_URL   = "https://christinia-sorediate-fred.ngrok-free.dev/upload";
-    const FLASK_REGISTER_URL = "https://christinia-sorediate-fred.ngrok-free.dev/register";
-    const FLASK_PIN_URL      = "https://christinia-sorediate-fred.ngrok-free.dev/pin_login";
+    const API_BASE = window.location.origin;
+    const FLASK_UPLOAD_URL   = `${API_BASE}/upload`;
+    const FLASK_REGISTER_URL = `${API_BASE}/register`;
+    const FLASK_PIN_URL      = `${API_BASE}/pin_login`;
 
     const video    = document.getElementById('video');
     const canvas   = document.getElementById('canvas');
@@ -556,14 +588,135 @@
     let scanTimer = null;
 
     // ================= CAMERA =================
+    async function checkCameraPrereq() {
+      const host = window.location.hostname;
+      const isLocalhost = ["localhost", "127.0.0.1"].includes(host);
+
+      if (!window.isSecureContext && !isLocalhost) {
+        throw new Error("Camera requires HTTPS or localhost");
+      }
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("getUserMedia is unavailable");
+      }
+    }
+
+    async function getCameraPermissionState() {
+      try {
+        if (!navigator.permissions || !navigator.permissions.query) return "unknown";
+        const status = await navigator.permissions.query({ name: "camera" });
+        return status.state;
+      } catch (e) {
+        return "unknown";
+      }
+    }
+
+    function explainCameraError(err) {
+      const message = String(err && (err.message || err.name || err));
+      const host = window.location.hostname;
+      const isLocalhost = ["localhost", "127.0.0.1"].includes(host);
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        return "Trình duyệt hiện tại không hỗ trợ camera hoặc trang chưa chạy trong secure context.";
+      }
+
+      if (!window.isSecureContext && !isLocalhost) {
+        return "Browser chỉ cho mở camera trên HTTPS hoặc localhost. Hãy mở bằng http://127.0.0.1:5000 trên chính máy này, hoặc dùng HTTPS/ngrok hợp lệ.";
+      }
+
+      if (message.includes("NotAllowedError") || message.includes("Permission denied")) {
+        return "Bạn đã chặn quyền camera. Hãy bấm biểu tượng camera trên thanh địa chỉ và cho phép truy cập.";
+      }
+
+      if (message.includes("NotFoundError") || message.includes("Requested device not found")) {
+        return "Không tìm thấy camera trên máy.";
+      }
+
+      if (
+        message.includes("NotReadableError")
+        || message.includes("TrackStartError")
+        || message.includes("Could not start video source")
+      ) {
+        return "Camera đang bị ứng dụng khác chiếm dụng hoặc browser không khởi tạo được. Hãy tắt Camera/Zoom/Meet/Teams/OBS rồi bấm thử lại.";
+      }
+
+      return `Không truy cập được camera: ${message}`;
+    }
+
+    async function tryGetUserMedia(constraints) {
+      return navigator.mediaDevices.getUserMedia(constraints);
+    }
+
+    async function openCameraStream() {
+      const attempts = [
+        {
+          video: {
+            facingMode: "user",
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
+          audio: false
+        },
+        {
+          video: {
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
+          audio: false
+        },
+        { video: true, audio: false }
+      ];
+
+      let lastError = null;
+      for (const constraints of attempts) {
+        try {
+          return await tryGetUserMedia(constraints);
+        } catch (err) {
+          lastError = err;
+        }
+      }
+
+      const devices = await navigator.mediaDevices.enumerateDevices().catch(() => []);
+      const cameras = devices.filter(d => d.kind === "videoinput");
+      for (const camera of cameras) {
+        try {
+          return await tryGetUserMedia({
+            video: { deviceId: { exact: camera.deviceId } },
+            audio: false
+          });
+        } catch (err) {
+          lastError = err;
+        }
+      }
+
+      throw lastError || new Error("No camera stream");
+    }
+
     async function startCamera() {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+        stopCamera();
+        await checkCameraPrereq();
+
+        const permissionState = await getCameraPermissionState();
+        if (permissionState === "denied") {
+          throw new Error("NotAllowedError");
+        }
+
+        result.innerText = "🔍 Đang mở camera...";
+        btnScan.disabled = true;
+        btnScan.innerText = "🟢 Đang khởi tạo camera...";
+
+        const stream = await openCameraStream();
         streamRef = stream;
         video.srcObject = stream;
+        await video.play().catch(() => {});
         startScanning();
       } catch (err) {
-        alert('Không truy cập được camera: ' + err);
+        const friendlyMessage = explainCameraError(err);
+        console.warn("Camera start failed:", err);
+        result.innerText = "⚠️ " + friendlyMessage;
+        btnScan.disabled = false;
+        btnScan.innerText = "🔁 Thử mở lại camera";
+        alert(friendlyMessage);
       }
     }
 
@@ -828,6 +981,9 @@
     });
 
     // ============== START ==============
+    btnScan.addEventListener('click', () => {
+      if (!streamRef) startCamera();
+    });
     window.addEventListener('beforeunload', stopCamera);
     startCamera();
   </script>

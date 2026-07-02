@@ -1,0 +1,13 @@
+Flask
+Flask-Cors
+mediapipe
+numpy
+opencv-python
+openai-whisper
+pydrive2
+pyngrok
+python-dotenv
+requests
+scikit-learn
+tensorflow
+torch

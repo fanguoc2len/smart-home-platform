@@ -4,6 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Smart Home</title>
+  <meta name="theme-color" content="#050914" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Smart Home" />
+  <link rel="manifest" href="{{ url_for('manifest') }}" />
+  <link rel="icon" href="{{ url_for('static', filename='icons/app-icon.svg') }}" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/app-icon.svg') }}" />
+  <script src="{{ url_for('static', filename='pwa.js') }}" defer></script>
   <!-- BẮT BUỘC FACE-ID TRƯỚC KHI VÀO HOME + HẾT 1 PHÚT PHẢI QUÉT LẠI -->
   <script>
     (function () {
@@ -113,10 +121,12 @@
       box-shadow: 0 0 12px rgba(0, 212, 255, 0.06);
       border: 1px solid rgba(0, 212, 255, 0.08);
       cursor: pointer;
-      transition: transform 0.18s, box-shadow 0.18s, background 0.18s;
+      transition: transform 0.18s ease, opacity 0.18s ease, border-color 0.18s ease;
       position: relative;
-      overflow: visible;
+      overflow: hidden;
       user-select: none;
+      backface-visibility: hidden;
+      transform: translateZ(0);
     }
 
     .card:hover {
@@ -145,7 +155,7 @@
       );
       box-shadow: 0 0 18px rgba(0, 255, 255, 0.6);
       border: 1px solid rgba(0, 255, 255, 0.8);
-      transition: all 0.25s ease-in-out;
+      transition: transform 0.22s ease, opacity 0.22s ease, border-color 0.18s ease;
     }
 
     .greet {
@@ -254,7 +264,7 @@
       box-shadow: 0 0 25px rgba(0, 255, 255, 0.6),
         inset 0 0 10px rgba(0, 255, 255, 0.3);
       border-color: rgba(0, 255, 255, 0.7);
-      transition: all 0.3s ease;
+      transition: transform 0.22s ease, opacity 0.22s ease, border-color 0.18s ease;
     }
 
     .device-card.on .state-text {
@@ -274,11 +284,11 @@
         0 0 18px rgba(0, 255, 255, 0.7),
         0 0 32px rgba(0, 255, 127, 0.55);
       isolation: isolate;
-      animation: rainbowShadow 6s linear infinite;
+      animation: none;
     }
 
     body.scene-party .card.rainbow-mode::before {
-      content: "";
+      content: none;
       position: absolute;
       top: 50%;
       left: 50%;
@@ -296,7 +306,7 @@
       );
       z-index: -1;
       pointer-events: none;
-      animation: rainbowSpinCircle 8s linear infinite;
+      animation: none;
     }
 
     body:not(.scene-party) .card.rainbow-mode::before {
@@ -360,7 +370,7 @@
       position: fixed;
       inset: 0;
       background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(4px);
       justify-content: center;
       align-items: center;
       z-index: 3000;
@@ -386,7 +396,7 @@
       width: 300px;
       box-shadow: 0 0 18px rgba(0, 212, 255, 0.35);
       text-align: center;
-      transition: all 0.25s ease;
+      transition: transform 0.18s ease, opacity 0.18s ease, border-color 0.18s ease;
       color: #cfe;
     }
 
@@ -645,8 +655,10 @@
       display: block;
     }
   </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='liquid-glass.css') }}" />
 </head>
-<body>
+<body class="liquid-home">
+  <div class="home-shell">
   <nav class="navbar">
     <a href="index.html">🔒 Nhận diện</a>
     <a href="home.html">🏠 Smart Home</a>
@@ -655,8 +667,13 @@
   <header>
     <div id="deleteModeBtn" class="global-delete-toggle">🗑️ Xóa thiết bị</div>
     <div class="welcome">
+      <div class="hero-kicker">DoAn2 Smart Home</div>
       <div class="title">My Smart Home</div>
       <div class="subtitle" id="subtitle">Thiết bị sẵn sàng</div>
+      <div class="hero-pills">
+        <span class="hero-pill">Đồng bộ thời gian thực</span>
+        <span class="hero-pill">Khuôn mặt + Giọng nói</span>
+      </div>
     </div>
     <div class="greet" id="greet"></div>
   </header>
@@ -699,14 +716,14 @@
   <div class="section" data-section="entry">
     <h2>Entry</h2>
     <div class="grid" id="entryGrid">
-      <div class="card" id="doorCard">
+      <div class="card device-card" id="doorCard">
         <div class="device">
           <strong>Front Door</strong>
           <span id="doorState">Locked</span>
         </div>
       </div>
 
-      <div class="card" id="sconcesCard">
+      <div class="card device-card" id="sconcesCard">
         <div class="device">
           <strong>Sconces</strong>
           <span id="sconcesState">Off</span>
@@ -724,21 +741,21 @@
   <div class="section" data-section="living">
     <h2>Living Room</h2>
     <div class="grid" id="livingGrid">
-      <div class="card">
+      <div class="card device-card">
         <div class="device">
           <strong>Thermostat</strong>
           <span>68°F • Heating to 70°</span>
         </div>
       </div>
 
-      <div class="card" id="ceilingCard">
+      <div class="card device-card" id="ceilingCard">
         <div class="device">
           <strong>Ceiling Lights</strong>
           <span id="ceilingState">Off</span>
         </div>
       </div>
 
-      <div class="card" id="accentCard">
+      <div class="card device-card" id="accentCard">
         <div class="device">
           <strong>Accent Lights</strong>
           <span id="accentState">Off</span>
@@ -756,21 +773,21 @@
   <div class="section" data-section="kitchen">
     <h2>Kitchen</h2>
     <div class="grid" id="kitchenGrid">
-      <div class="card">
+      <div class="card device-card">
         <div class="device">
           <strong>Thermostat</strong>
           <span>72°F • Cooling to 70°</span>
         </div>
       </div>
 
-      <div class="card" id="tableCard">
+      <div class="card device-card" id="tableCard">
         <div class="device">
           <strong>Table Lights</strong>
           <span id="tableState">Off</span>
         </div>
       </div>
 
-      <div class="card" id="sideDoorCard">
+      <div class="card device-card" id="sideDoorCard">
         <div class="device">
           <strong>Side Door</strong>
           <span id="sideDoorState">Closed</span>
@@ -782,6 +799,8 @@
         <small>Thêm thiết bị</small>
       </div>
     </div>
+  </div>
+
   </div>
 
   <!-- Modal add device -->
@@ -887,6 +906,125 @@
       return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
     }
 
+    function clampNumber(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function normalizeHexColor(hex) {
+      if (!hex) return "#7FC6FF";
+      var value = String(hex).trim();
+      if (!value) return "#7FC6FF";
+      if (value[0] !== "#") value = "#" + value;
+      if (value.length === 4) {
+        value =
+          "#" +
+          value[1] + value[1] +
+          value[2] + value[2] +
+          value[3] + value[3];
+      }
+      if (!/^#[0-9a-fA-F]{6}$/.test(value)) return "#7FC6FF";
+      return value.toUpperCase();
+    }
+
+    function hexToRgb(hex) {
+      var value = normalizeHexColor(hex).replace("#", "");
+      return {
+        r: parseInt(value.substring(0, 2), 16),
+        g: parseInt(value.substring(2, 4), 16),
+        b: parseInt(value.substring(4, 6), 16),
+      };
+    }
+
+    function describeLightColor(hex) {
+      var rgb = hexToRgb(hex);
+      var r = rgb.r;
+      var g = rgb.g;
+      var b = rgb.b;
+
+      if (r > 225 && g > 225 && b > 225) return "Trắng";
+      if (r > 220 && g > 180 && b < 150) return "Vàng ấm";
+      if (r > 210 && g < 120 && b < 120) return "Đỏ";
+      if (r > 210 && g > 120 && b > 170) return "Hồng";
+      if (g > 190 && r < 170 && b < 150) return "Xanh lá";
+      if (b > 205 && r < 150 && g < 210) return "Xanh dương";
+      if (g > 175 && b > 185 && r < 155) return "Xanh ngọc";
+      if (r > 150 && b > 185 && g < 170) return "Tím";
+      return "Tùy chỉnh";
+    }
+
+    function pulseCard(card, cls) {
+      if (!card) return;
+      var className = cls || "state-pulse";
+      card.classList.remove(className);
+      void card.offsetWidth;
+      card.classList.add(className);
+      setTimeout(function () {
+        card.classList.remove(className);
+      }, 560);
+    }
+
+    function updateDeviceMeta(card, dev) {
+      if (!card) return;
+
+      var meta = card.querySelector(".device-meta");
+      var level = card.querySelector(".device-level");
+      var color = card.querySelector(".device-color");
+      var meter = card.querySelector(".device-meter");
+      var fill = card.querySelector(".device-meter-fill");
+
+      if (!meta || !level || !color || !meter || !fill) return;
+
+      card.classList.toggle("light-card", dev.type === "light");
+      card.classList.toggle("fan-card", dev.type === "fan");
+      card.classList.toggle("speaker-card", dev.type === "speaker");
+
+      var showMeta = false;
+      var levelText = "";
+      var colorText = "";
+      var accent = normalizeHexColor(dev.color || "#7FC6FF");
+      var percent = 0;
+
+      if (dev.type === "light") {
+        var brightness = clampNumber(Number(dev.brightness || 0), 0, 100);
+        percent = brightness;
+        showMeta = true;
+        levelText = "Độ sáng " + brightness + "%";
+        colorText = brightness > 0 ? describeLightColor(accent) : "Đèn tắt";
+      } else if (dev.type === "fan") {
+        var speed = clampNumber(Number(dev.speed || 0), 0, 3);
+        percent = Math.round((speed / 3) * 100);
+        showMeta = true;
+        levelText = "Tốc độ " + speed + "/3";
+        colorText = speed > 0 ? "Quạt đang chạy" : "Quạt tắt";
+        accent = "#66C9FF";
+      } else if (dev.type === "speaker") {
+        var volume = clampNumber(Number(dev.volume || 0), 0, 100);
+        percent = volume;
+        showMeta = true;
+        levelText = "Âm lượng " + volume + "%";
+        colorText = dev.state ? "Đang phát" : "Tạm dừng";
+        accent = "#8D9DFF";
+      }
+
+      meta.style.display = showMeta ? "flex" : "none";
+      meter.style.display = showMeta ? "block" : "none";
+      if (!showMeta) return;
+
+      card.style.setProperty("--device-accent", accent);
+      level.textContent = levelText;
+      color.textContent = colorText;
+      color.style.setProperty("--chip-color", accent);
+      fill.style.width = percent + "%";
+      fill.style.setProperty("--meter-glow", hexToRgba(accent, 0.24));
+      fill.style.background =
+        "linear-gradient(90deg, " +
+        hexToRgba(accent, 0.34) +
+        ", " +
+        accent +
+        ")";
+      fill.style.boxShadow = "";
+    }
+
     const SPEAKER_TRACK_OPTIONS = [
       { id: 1, label: "Bài 1", title: "Party Time!" },
       { id: 2, label: "Bài 2", title: "Chill and Relax" },
@@ -897,8 +1035,16 @@
       var stateText = card.querySelector(".state-text");
       if (!stateText) return;
 
+      // ===== ĐÈN =====
+      if (dev.type === "light") {
+        var brightness = clampNumber(Number(dev.brightness || 0), 0, 100);
+        stateText.textContent =
+          dev.state && brightness > 0
+            ? brightness + "% • " + describeLightColor(dev.color || "#FFFFFF")
+            : "Off";
+
       // ===== LOA =====
-      if (dev.type === "speaker") {
+      } else if (dev.type === "speaker") {
         stateText.textContent = dev.state ? "Playing" : "Off";
 
       // ===== SENSOR & THERMOSTAT (DHT11, cảm biến nhiệt/ẩm) =====
@@ -933,10 +1079,10 @@
           : !!dev.state;
 
       if (isOn) {
-        stateText.style.color = "#00ffcc";
+        stateText.style.color = "#8fd5ff";
         stateText.style.fontWeight = "600";
       } else {
-        stateText.style.color = "#bcd";
+        stateText.style.color = "#a9b9d2";
         stateText.style.fontWeight = "400";
       }
     }
@@ -957,49 +1103,43 @@
       else if (dev.type === "speaker") dev.state = (dev.volume || 0) > 0;
 
       var accentColor =
-        dev.type === "light" && dev.color ? dev.color : "#00fff0";
-      var accentStrong = hexToRgba(accentColor, 0.65);
+        dev.type === "light" && dev.color
+          ? dev.color
+          : dev.type === "speaker"
+          ? "#7f8fff"
+          : dev.type === "fan"
+          ? "#66c9ff"
+          : "#78a8ff";
+      var accentStrong = hexToRgba(accentColor, 0.36);
+      var tintAlpha = dev.type === "light" ? 0.34 : 0.22;
+      var glowAlpha = 0.16 + level * 0.16;
+
+      card.style.setProperty("--device-accent", accentColor);
+      card.style.setProperty("--card-accent-strong", accentStrong);
+      card.style.setProperty("--card-on-tint", hexToRgba(accentColor, tintAlpha));
+      card.style.setProperty("--card-on-glow", hexToRgba(accentColor, glowAlpha));
 
       if (isRainbow && dev.state) {
         card.classList.add("rainbow-mode");
-        card.style.background = "";
-        card.style.boxShadow = "";
-        card.style.borderColor = "";
+        card.classList.remove("on");
       } else {
         card.classList.remove("rainbow-mode");
         if (level <= 0 || !dev.state) {
-          card.style.background = "rgba(255,255,255,0.04)";
-          card.style.boxShadow = "none";
-          card.style.borderColor = "rgba(255,255,255,0.04)";
           card.classList.remove("on");
         } else {
-          var blur = 10 + level * 25;
-          var alpha = 0.25 + level * 0.45;
-          card.style.background =
-            "linear-gradient(0deg," +
-            hexToRgba(accentColor, 0.12) +
-            " " +
-            level * 100 +
-            "%, rgba(255,255,255,0.05) " +
-            level * 100 +
-            "%)";
-          card.style.boxShadow =
-            "0 0 " + blur + "px " + hexToRgba(accentColor, alpha);
-          card.style.borderColor = accentStrong;
           card.classList.add("on");
         }
       }
-      card.style.transition =
-        "background 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease";
 
       var title = card.querySelector("strong");
       if (title) {
         var tLevel = dev.state ? 1 : level;
         title.style.color =
-          "rgba(255,255,255," + (0.6 + 0.4 * tLevel) + ")";
+          "rgba(248,251,255," + (0.8 + 0.2 * tLevel) + ")";
       }
 
       updateStateText(card, dev);
+      updateDeviceMeta(card, dev);
     }
 
     function attachPressHandlers(card, dev, onTap) {
@@ -1135,6 +1275,7 @@
               dev.state = dev.volume > 0;
             }
             updateCardVisual(card, dev);
+            pulseCard(card, "tune-pulse");
             saveAndRefresh(false, false);
             if (window.saveDeviceDebounced)
               window.saveDeviceDebounced(dev);
@@ -1151,6 +1292,7 @@
               dev.state = true;
             }
             updateCardVisual(card, dev);
+            pulseCard(card, "tune-pulse");
             saveAndRefresh(false, false);
             if (window.saveDeviceDebounced)
               window.saveDeviceDebounced(dev);
@@ -1181,6 +1323,7 @@
             }
             updateRbLabel();
             updateCardVisual(card, dev);
+            pulseCard(card, "tune-pulse");
             saveAndRefresh(false, false);
             if (window.saveDeviceDebounced)
               window.saveDeviceDebounced(dev);
@@ -1199,6 +1342,7 @@
             updateCardVisual(card, dev);
             if (typeof updateStateText === "function")
               updateStateText(card, dev);
+            pulseCard(card, "tune-pulse");
             saveAndRefresh(false, false);
             if (window.saveDeviceDebounced)
               window.saveDeviceDebounced(dev);
@@ -1265,6 +1409,7 @@
         if (e.touches && e.touches.length > 1) return;
         isDown = true;
         longPressed = false;
+        card.classList.add("pressing");
         clearTimer();
         timer = setTimeout(function () {
           timer = null;
@@ -1275,6 +1420,7 @@
       function handleUp(e) {
         if (!isDown) return;
         isDown = false;
+        card.classList.remove("pressing");
         clearTimer();
         if (
           longPressed ||
@@ -1289,6 +1435,7 @@
 
       function handleCancel() {
         isDown = false;
+        card.classList.remove("pressing");
         clearTimer();
       }
 
@@ -1317,7 +1464,7 @@
 
     function buildDeviceCard(dev) {
       var card = document.createElement("div");
-      card.className = "card";
+      card.className = "card device-card";
       card.dataset.generated = "true";
       card.id = dev.id;
 
@@ -1355,6 +1502,11 @@
             : "On"
           : "Off") +
         "</span>" +
+        '<div class="device-meta">' +
+        '<span class="device-pill device-level"></span>' +
+        '<span class="device-pill device-color"></span>' +
+        "</div>" +
+        '<div class="device-meter"><span class="device-meter-fill"></span></div>' +
         "</div>" +
         '<div class="controls"></div>';
 
@@ -1421,6 +1573,7 @@
 
         updateCardVisual(card, dev);
         updateStateText(card, dev);
+        pulseCard(card);
         saveAndRefresh(false, false);
         if (window.saveDeviceDebounced)
           window.saveDeviceDebounced(dev);
@@ -1452,6 +1605,7 @@
           dev.state = dev.brightness > 0;
           updateCardVisual(card, dev);
           updateStateText(card, dev);
+          pulseCard(card, "tune-pulse");
           saveAndRefresh(false, false);
           if (window.saveDeviceDebounced)
             window.saveDeviceDebounced(dev);
@@ -1462,6 +1616,7 @@
         var onColor = function () {
           dev.color = color.value;
           updateCardVisual(card, dev);
+          pulseCard(card, "tune-pulse");
           saveAndRefresh(false, false);
           if (window.saveDeviceDebounced)
             window.saveDeviceDebounced(dev);
@@ -1485,6 +1640,7 @@
           dev.state = dev.speed > 0;
           updateCardVisual(card, dev);
           updateStateText(card, dev);
+          pulseCard(card, "tune-pulse");
           saveAndRefresh(false, false);
           if (window.saveDeviceDebounced)
             window.saveDeviceDebounced(dev);
@@ -1508,6 +1664,7 @@
           dev.state = dev.volume > 0;
           updateCardVisual(card, dev);
           updateStateText(card, dev);
+          pulseCard(card, "tune-pulse");
           saveAndRefresh(false, false);
           if (window.saveDeviceDebounced)
             window.saveDeviceDebounced(dev);
@@ -1530,6 +1687,7 @@
           dev.temperature = Number(temp.value);
           updateStateText(card, dev);
           updateCardVisual(card, dev);
+          pulseCard(card, "tune-pulse");
           saveAndRefresh(false, false);
           if (window.saveDeviceDebounced)
             window.saveDeviceDebounced(dev);
@@ -1678,6 +1836,7 @@
           const txt = document.getElementById(sid);
           const on = !el.classList.contains("on");
           el.classList.toggle("on");
+          pulseCard(el);
 
           let labelOn = "On";
           if (cid === "doorCard") labelOn = "Unlocked";
@@ -1914,7 +2073,10 @@
 
   <!-- Cho phép client đẩy lệnh voice -->
   <script>
-    window.APP_CLIENT_PUSH_ENABLED = true;
+    window.SMART_HOME_API_BASE =
+      window.SMART_HOME_API_BASE || window.location.origin;
+    // Server mới là nguồn điều khiển chính; client chỉ giữ fallback khi bật tay.
+    window.APP_CLIENT_PUSH_ENABLED = false;
   </script>
 
   <!-- SCRIPT 2: Voice UI + MediaRecorder -->
@@ -1948,7 +2110,8 @@
 
     document.addEventListener("DOMContentLoaded", function () {
       const VOICE_ENDPOINT =
-        "https://christinia-sorediate-fred.ngrok-free.dev/voice";
+        window.SMART_HOME_VOICE_ENDPOINT ||
+        new URL("/voice", window.SMART_HOME_API_BASE).toString();
       const VOICE_TOKEN = null;
 
       const BTN = document.getElementById("voiceBtn");
@@ -2202,7 +2365,27 @@
             data && data.scheduled ? data.scheduled : null
           );
 
-          if (cmd && window.APP_CLIENT_PUSH_ENABLED === true) {
+          const hasSchedule = Boolean(data && data.scheduled);
+          const pushResult = data && data.push_result ? data.push_result : null;
+          const desiredResult = pushResult && pushResult.desired_result ? pushResult.desired_result : null;
+          const bulkResults = Array.isArray(data && data.results) ? data.results : null;
+          const serverExecutedOk = bulkResults
+            ? bulkResults.every(function (r) {
+                return r && r.status === "ok";
+              })
+            : desiredResult
+            ? desiredResult.status === "ok"
+            : pushResult
+            ? pushResult.status === "ok"
+            : false;
+
+          // Chỉ fallback về client nếu chủ động bật cờ này và backend chưa thực thi ổn.
+          if (
+            cmd &&
+            window.APP_CLIENT_PUSH_ENABLED === true &&
+            !hasSchedule &&
+            (!data || data.execute !== true || !serverExecutedOk)
+          ) {
             if (Array.isArray(cmd.multi) && cmd.multi.length) {
               console.log("VOICE MULTI:", cmd.multi);
               if (
@@ -2905,7 +3088,7 @@
       subscribeUiScene,
       setCurrentScene,
       clearCurrentScene
-    } from "./firebase.js";
+    } from "{{ url_for('frontend_asset', filename='firebase.js') }}";
 
     // expose scene helpers ra window để SCRIPT 5 (voice) dùng được
     window.setCurrentScene = function (id, opts) {
@@ -2948,7 +3131,7 @@
       if (!sceneId || !sceneCfg) {
         body.dataset.scene = "";
         body.classList.remove("scene-party");
-        body.style.background = "linear-gradient(145deg, #1b2735, #090a0f)";
+        body.style.background = "";
         root.style.removeProperty("--rainbow-enable");
         return;
       }
@@ -2961,21 +3144,24 @@
       // TÙY BIẾN NỀN RIÊNG CHO FOCUS & PARTY (dễ nhìn hơn)
       // =====================================================
       if (sceneId === "focus") {
-        // Focus: xanh đậm, dịu mắt
         body.style.background =
-          "radial-gradient(circle at top, #051b30, #020812)";
+          "radial-gradient(circle at 18% 10%, rgba(255,255,255,0.94), rgba(255,255,255,0) 24%), linear-gradient(180deg, #eff6ff 0%, #dee8ff 44%, #d2dcff 100%)";
       } else if (sceneId === "party") {
-        // Party: tím/hồng nhưng nền vẫn tối, chữ dễ đọc
         body.style.background =
-          "radial-gradient(circle at top, #230835, #050210)";
+          "radial-gradient(circle at 15% 10%, rgba(255,255,255,0.96), rgba(255,255,255,0) 24%), linear-gradient(180deg, #fff1f7 0%, #ece7ff 50%, #d9e6ff 100%)";
+      } else if (sceneId === "relax") {
+        body.style.background =
+          "radial-gradient(circle at top, rgba(255,255,255,0.96), rgba(255,255,255,0) 26%), linear-gradient(180deg, #f7fbff 0%, #e7f0ff 46%, #dbe6ff 100%)";
+      } else if (sceneId === "night") {
+        body.style.background =
+          "radial-gradient(circle at 18% 10%, rgba(255,255,255,0.82), rgba(255,255,255,0) 20%), linear-gradient(180deg, #e8edff 0%, #d7e0ff 48%, #c8d3f3 100%)";
       } else {
-        // Các scene khác vẫn dùng config từ Firebase
         if (bgType === "gradient" && Array.isArray(bgColors) && bgColors.length >= 2) {
           body.style.background = `radial-gradient(circle at top, ${bgColors[0]}, ${bgColors[1]})`;
         } else if (bgType === "solid" && Array.isArray(bgColors) && bgColors.length >= 1) {
           body.style.background = bgColors[0];
         } else {
-          body.style.background = "linear-gradient(145deg, #1b2735, #090a0f)";
+          body.style.background = "";
         }
       }
 
@@ -3032,7 +3218,19 @@
     }
     window.saveDeviceDebounced = _saveDeviceDebounced_internal;
 
-    loadDevicesFromFirebase((firebaseDevices) => {
+    async function loadDevicesFromBackendFallback() {
+      try {
+        const res = await fetch("/api/devices", { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        return Array.isArray(data.devices) ? data.devices : [];
+      } catch (e) {
+        console.warn("Backend fallback devices failed:", e);
+        return [];
+      }
+    }
+
+    loadDevicesFromFirebase(async (firebaseDevices) => {
       if (window._preventFirebaseSync) {
         console.log("Firebase sync blocked (anti-bounce)");
         return;
@@ -3041,9 +3239,14 @@
       if (firebaseDevices && firebaseDevices.length > 0) {
         window.saved = firebaseDevices;
       } else {
-        const raw =
-          localStorage.getItem("my_smart_devices_v1");
-        window.saved = raw ? JSON.parse(raw) : [];
+        const backendDevices = await loadDevicesFromBackendFallback();
+        if (backendDevices.length > 0) {
+          window.saved = backendDevices;
+        } else {
+          const raw =
+            localStorage.getItem("my_smart_devices_v1");
+          window.saved = raw ? JSON.parse(raw) : [];
+        }
       }
 
       try {
@@ -3065,7 +3268,7 @@
     🎤
   </button>
 
-  <link rel="stylesheet" href="scenes.css" />
+  <link rel="stylesheet" href="{{ url_for('frontend_asset', filename='scenes.css') }}" />
  <!--<script src="/scenes.js"></script>-->
 </body>
 </html>
