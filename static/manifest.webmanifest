@@ -1,0 +1,37 @@
+{
+  "name": "Smart Home Face Access",
+  "short_name": "Smart Home",
+  "description": "Nhan dien khuon mat va dieu khien thiet bi nha thong minh.",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#050914",
+  "theme_color": "#050914",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/static/icons/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/icons/app-icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Quet khuon mat",
+      "short_name": "Quet mat",
+      "url": "/index.html"
+    },
+    {
+      "name": "Vao Smart Home",
+      "short_name": "Home",
+      "url": "/home.html"
+    }
+  ]
+}

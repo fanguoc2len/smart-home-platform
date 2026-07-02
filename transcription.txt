@@ -1,1 +1,0 @@
-Bật đèn NeoPixel ở Entry với độ sáng là 50% màu đỏ.
