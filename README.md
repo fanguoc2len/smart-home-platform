@@ -88,8 +88,8 @@ request.
 
 Real face images, local registration databases, audio recordings, cache files,
 virtual environments, and local ESP-IDF/HomeKit build folders are intentionally
-ignored. This keeps the public repository safe to share during internship
-applications while preserving local demo data on the development machine.
+ignored. This keeps sensitive local data out of version control while
+preserving local demo data on the development machine.
 
 ## Docs
 
