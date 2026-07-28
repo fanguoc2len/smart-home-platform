@@ -1,5 +1,7 @@
 # DoAn2 Smart Home
 
+[![Python Smoke Checks](https://github.com/fanguoc2len/DoAn2/actions/workflows/python-smoke.yml/badge.svg)](https://github.com/fanguoc2len/DoAn2/actions/workflows/python-smoke.yml)
+
 Full-stack smart-home prototype combining a Flask AI gateway, face/PIN access,
 Vietnamese voice commands, Firebase Realtime Database sync, and an ESP32/Arduino
 device layer.
