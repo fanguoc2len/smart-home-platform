@@ -31,7 +31,8 @@ Use `.env.example` and `registered.example.json` as shareable templates.
 - Do not publish real face images or voice recordings.
 - Keep debug tunnel exposure disabled unless a demo requires it.
 
-## Interview Demo Guidance
+## Demonstration Guidance
 
-For interviews, show the source code, docs, and CI checks. Use synthetic or
-empty face data unless you have explicit permission to show real people.
+For demonstrations, show the source code, documentation, and CI checks. Use
+synthetic or empty face data unless you have explicit permission to show real
+people.
