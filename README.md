@@ -21,21 +21,26 @@ HomeKit migration lives in `DoAn2-HomeKit`.
 
 ## Architecture
 
-```text
-browser / PWA
-  -> templates/index.html      face/PIN access
-  -> templates/home.html       smart-home dashboard
-  -> templates/firebase.js     Firebase and Pi compatibility layer
+```mermaid
+flowchart LR
+    User["Browser / PWA"] --> Flask["Flask AI gateway"]
+    Camera["Camera"] --> Face["Face embedding pipeline"]
+    Voice["Vietnamese voice input"] --> Speech["Voice parser / Whisper option"]
+    PIN["PIN fallback"] --> Flask
+    Face --> Flask
+    Speech --> Flask
 
-Flask backend
-  -> app.py                    AI gateway, auth routes, voice parser, APIs
-  -> backup_server_pi.py       local Pi JSON backend
-  -> sketch_nov16c.ino         ESP32/Arduino firmware path
+    User <-->|"desired / reported state"| Firebase["Firebase Realtime Database"]
+    Flask <-->|"authentication and commands"| Firebase
+    Firebase <-->|"device state"| ESP32["ESP32 / Arduino firmware"]
+    ESP32 --> Devices["Lights, sensors and actuators"]
 
-Local data
-  -> registered.json           ignored face database
-  -> registered_images/        ignored captured face images
+    User <-->|"LAN-only JSON state"| Pi["Raspberry Pi backup API"]
 ```
+
+The cloud path synchronizes desired and reported state through Firebase. The
+Raspberry Pi API provides a local fallback, while Flask owns authentication,
+face processing, and voice-command handling.
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for a fuller module map.
 
