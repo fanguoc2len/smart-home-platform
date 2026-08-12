@@ -9,5 +9,5 @@ pyngrok==8.1.2
 python-dotenv==1.2.2
 requests==2.34.2
 scikit-learn==1.9.0
-tensorflow==2.21.0
+tensorflow==2.18.1
 torch==2.13.0
