@@ -24,8 +24,10 @@ Use `.env.example` and `registered.example.json` as shareable templates.
 
 ## Deployment Checklist
 
-- Change `ADMIN_REGISTER_PASSWORD`.
-- Change `SMART_HOME_PIN`.
+- Set unique `ADMIN_REGISTER_PASSWORD` and `SMART_HOME_PIN` values. The server
+  intentionally fails closed when either required access control is absent.
+- Keep `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` in `.env`; revoke any bot
+  token immediately if it has ever appeared in Git history.
 - Lock down Firebase Realtime Database rules.
 - Rotate ngrok and Google Drive tokens if they were used during development.
 - Do not publish real face images or voice recordings.

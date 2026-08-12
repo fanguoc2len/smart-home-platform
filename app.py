@@ -36,8 +36,8 @@ except Exception:
     pass
 
 TF_ENABLE_XLA = os.environ.get("TF_ENABLE_XLA", "0") == "1"
-ADMIN_REGISTER_PASSWORD = os.environ.get("ADMIN_REGISTER_PASSWORD", "123456").strip()
-SMART_HOME_PIN = os.environ.get("SMART_HOME_PIN", "1505").strip()
+ADMIN_REGISTER_PASSWORD = os.environ.get("ADMIN_REGISTER_PASSWORD", "").strip()
+SMART_HOME_PIN = os.environ.get("SMART_HOME_PIN", "").strip()
 
 def _bootstrap_tensorflow_cuda():
     python_tag = f"python{sys.version_info.major}.{sys.version_info.minor}"
@@ -1358,7 +1358,16 @@ def register():
         img_base64 = data.get('image')
         admin_pass = (data.get("admin_password") or "").strip()
 
-        if ADMIN_REGISTER_PASSWORD and admin_pass != ADMIN_REGISTER_PASSWORD:
+        if not ADMIN_REGISTER_PASSWORD:
+            return jsonify(
+                {
+                    "status": "error",
+                    "code": "access_control_not_configured",
+                    "message": "ADMIN_REGISTER_PASSWORD chưa được cấu hình.",
+                }
+            ), 503
+
+        if admin_pass != ADMIN_REGISTER_PASSWORD:
             return jsonify(
                 {
                     "status": "error",
@@ -1414,6 +1423,15 @@ def pin_login():
                     "message": "Thiếu mã PIN.",
                 }
             ), 400
+
+        if not SMART_HOME_PIN:
+            return jsonify(
+                {
+                    "status": "error",
+                    "code": "access_control_not_configured",
+                    "message": "SMART_HOME_PIN chưa được cấu hình.",
+                }
+            ), 503
 
         if pin != SMART_HOME_PIN:
             return jsonify(

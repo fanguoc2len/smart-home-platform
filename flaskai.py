@@ -16,17 +16,17 @@ from datetime import datetime, timedelta
 
 # ==== MẬT KHẨU ADMIN CHO ĐĂNG KÝ KHUÔN MẶT ====
 # ĐỔI "123456" THÀNH MẬT KHẨU RIÊNG, HOẶC SET ENV ADMIN_REGISTER_PASSWORD
-ADMIN_REGISTER_PASSWORD = os.environ.get("ADMIN_REGISTER_PASSWORD", "123456")
+ADMIN_REGISTER_PASSWORD = os.environ.get("ADMIN_REGISTER_PASSWORD", "").strip()
 
 # ==== MÃ PIN DỰ PHÒNG ĐĂNG NHẬP (KEYPAD) ====
 # Đổi "2580" thành mã PIN bạn muốn, hoặc set biến môi trường SMART_HOME_PIN
-SMART_HOME_PIN = os.environ.get("SMART_HOME_PIN", "1505")
+SMART_HOME_PIN = os.environ.get("SMART_HOME_PIN", "").strip()
 
 # ============================================
 # TELEGRAM BOT CONFIG
 # ============================================
-TELEGRAM_TOKEN = "REDACTED_TELEGRAM_BOT_TOKEN"     # <== BOT TOKEN
-TELEGRAM_CHAT_ID = 8570971634                                       # <== CHAT ID
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 
 TG_SEND_URL = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
 TG_PHOTO_URL = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendPhoto"
@@ -1721,7 +1721,14 @@ def register():
 
         # ======= CHECK MẬT KHẨU ADMIN =======
         admin_pass = (data.get("admin_password") or "").strip()
-        if ADMIN_REGISTER_PASSWORD and admin_pass != ADMIN_REGISTER_PASSWORD:
+        if not ADMIN_REGISTER_PASSWORD:
+            return jsonify({
+                'status': 'error',
+                'code': 'access_control_not_configured',
+                'message': 'ADMIN_REGISTER_PASSWORD chưa được cấu hình.'
+            }), 503
+
+        if admin_pass != ADMIN_REGISTER_PASSWORD:
             # 🔒 Cảnh báo bảo mật: có người cố đăng ký nhưng sai mật khẩu admin
             try:
                 ip = request.remote_addr or "unknown"
@@ -1806,6 +1813,13 @@ def pin_login():
                 "code": "missing_pin",
                 "message": "Thiếu mã PIN."
             }), 400
+
+        if not SMART_HOME_PIN:
+            return jsonify({
+                "status": "error",
+                "code": "access_control_not_configured",
+                "message": "SMART_HOME_PIN chưa được cấu hình."
+            }), 503
 
         if pin != SMART_HOME_PIN:
             return jsonify({

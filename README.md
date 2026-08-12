@@ -1,13 +1,14 @@
-# DoAn2 Smart Home
+# Smart Home Platform
 
-[![Python Smoke Checks](https://github.com/fanguoc2len/DoAn2/actions/workflows/python-smoke.yml/badge.svg)](https://github.com/fanguoc2len/DoAn2/actions/workflows/python-smoke.yml)
+[![Python Smoke Checks](https://github.com/fanguoc2len/smart-home-platform/actions/workflows/python-smoke.yml/badge.svg)](https://github.com/fanguoc2len/smart-home-platform/actions/workflows/python-smoke.yml)
 
 Full-stack smart-home prototype combining a Flask AI gateway, face/PIN access,
 Vietnamese voice commands, Firebase Realtime Database sync, and an ESP32/Arduino
 device layer.
 
-This repository is kept as the original DoAn2 system. A separate native
-HomeKit migration lives in `DoAn2-HomeKit`.
+This repository contains the original smart-home system. A separate native
+HomeKit migration lives in
+[`esp32-homekit-bridge`](https://github.com/fanguoc2len/esp32-homekit-bridge).
 
 ## Highlights
 
@@ -73,6 +74,8 @@ Important variables:
 | --- | --- |
 | `ADMIN_REGISTER_PASSWORD` | Password required to register a new face |
 | `SMART_HOME_PIN` | PIN fallback for login |
+| `TELEGRAM_BOT_TOKEN` | Optional Telegram alert bot token |
+| `TELEGRAM_CHAT_ID` | Optional Telegram alert destination |
 | `REGISTERED_DB` | Local face registry JSON path |
 | `REGISTERED_IMAGES_DIR` | Local face image directory |
 | `FIREBASE_DATABASE_URL` | Firebase Realtime Database base URL |
@@ -85,6 +88,8 @@ Hardware-free checks:
 
 ```bash
 python3 scripts/check_repo_hygiene.py
+python3 -m pip install -r requirements-test.txt
+python3 -m unittest discover -s tests -v
 python3 -m py_compile app.py backup_server_pi.py flask_ai_server.py flaskai.py voice_debug.py test_voice.py testgiongnoi.py whisper_test.py
 ```
 
