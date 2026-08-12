@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import pathlib
+import re
 import subprocess
 import sys
 
@@ -35,6 +36,20 @@ BLOCKED_SUFFIXES = (
     ".wav",
 )
 
+SECRET_PATTERNS = (
+    (
+        "Telegram bot token",
+        re.compile(r"\b[0-9]{8,12}:[A-Za-z0-9_-]{30,}\b"),
+    ),
+    (
+        "insecure demo access credential",
+        re.compile(
+            r"^(?:ADMIN_REGISTER_PASSWORD=123456|SMART_HOME_PIN=1505)$",
+            re.MULTILINE,
+        ),
+    ),
+)
+
 
 def tracked_files() -> list[str]:
     result = subprocess.run(
@@ -60,10 +75,27 @@ def is_blocked(path: str) -> bool:
 
 def main() -> int:
     failures = [path for path in tracked_files() if is_blocked(path)]
-    if failures:
+    secret_failures: list[tuple[str, str]] = []
+
+    for relative in tracked_files():
+        path = ROOT / relative
+        if not path.is_file():
+            continue
+        try:
+            content = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue
+
+        for label, pattern in SECRET_PATTERNS:
+            if pattern.search(content):
+                secret_failures.append((relative, label))
+
+    if failures or secret_failures:
         print("Private or generated files are tracked:")
         for path in failures:
             print(f"  - {path}")
+        for path, label in secret_failures:
+            print(f"  - {path}: {label}")
         print("Keep these files local and remove them from the Git index.")
         return 1
 
