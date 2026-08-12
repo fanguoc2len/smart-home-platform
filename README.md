@@ -6,7 +6,7 @@ Full-stack smart-home prototype combining a Flask AI gateway, face/PIN access,
 Vietnamese voice commands, Firebase Realtime Database sync, and an ESP32/Arduino
 device layer.
 
-This repository is kept as the original DoAn2 system. A separate native
+This repository contains the original smart-home system. A separate native
 HomeKit migration lives in
 [`esp32-homekit-bridge`](https://github.com/fanguoc2len/esp32-homekit-bridge).
 

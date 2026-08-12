@@ -1,6 +1,6 @@
 # Architecture
 
-DoAn2 is organized around three runtime surfaces: the browser dashboard, the
+Smart Home Platform is organized around three runtime surfaces: the browser dashboard, the
 Flask AI gateway, and the device synchronization layer.
 
 ## Browser Dashboard
@@ -42,5 +42,5 @@ state back.
 
 The tracked Arduino sketch, `sketch_nov16c.ino`, is the legacy ESP32 path used
 by the original project. The newer native HomeKit firmware was split into the
-separate `DoAn2-HomeKit` repository to keep this repo focused on the original
+separate `esp32-homekit-bridge` repository to keep this repo focused on the original
 full-stack system.
